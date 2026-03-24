@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Workflow Auditor</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>AI Workflow Auditor</h1>
+      <p class="subtitle">MVP: измеряем экономию времени и качество AI-задач</p>
+
+      <section class="card">
+        <h2>Плагины (role-based)</h2>
+        <div id="plugins" class="plugins"></div>
+      </section>
+
+      <section class="card">
+        <h2>Новая задача</h2>
+        <form id="taskForm">
+          <div class="grid">
+            <label>
+              Название
+              <input name="title" required />
+            </label>
+            <label>
+              Отдел
+              <select name="department" required>
+                <option value="marketing">Marketing</option>
+                <option value="legal">Legal</option>
+                <option value="ops">Ops</option>
+                <option value="finance">Finance</option>
+                <option value="product">Product</option>
+              </select>
+            </label>
+            <label>
+              Владелец
+              <input name="owner" required />
+            </label>
+            <label>
+              Минут без AI
+              <input type="number" name="withoutAiMinutes" min="0" required />
+            </label>
+            <label>
+              Минут с AI
+              <input type="number" name="withAiMinutes" min="0" required />
+            </label>
+            <label>
+              Правки
+              <input type="number" name="revisions" min="0" value="0" />
+            </label>
+            <label>
+              Одобрено
+              <select name="approved">
+                <option value="true">Да</option>
+                <option value="false">Нет</option>
+              </select>
+            </label>
+            <label>
+              Риски (через запятую)
+              <input name="riskFlags" placeholder="pii, compliance" />
+            </label>
+          </div>
+          <button type="submit">Сохранить</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Сводка</h2>
+        <div id="metrics" class="metrics"></div>
+      </section>
+
+      <section class="card">
+        <h2>Последние задачи</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Задача</th>
+              <th>Отдел</th>
+              <th>Владелец</th>
+              <th>До AI</th>
+              <th>С AI</th>
+              <th>Экономия</th>
+              <th>Качество</th>
+              <th>Плагины</th>
+              <th>Риски</th>
+            </tr>
+          </thead>
+          <tbody id="taskRows"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

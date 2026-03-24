@@ -1,0 +1,44 @@
+{
+  "tasks": [
+    {
+      "id": "t_1772000127231",
+      "createdAt": "2026-02-25T06:15:27.231Z",
+      "title": "Prepare contract policy draft with client-data",
+      "department": "legal",
+      "owner": "Dana",
+      "withoutAiMinutes": 100,
+      "withAiMinutes": 70,
+      "revisions": 1,
+      "approved": false,
+      "riskFlags": [
+        "compliance",
+        "pii"
+      ],
+      "pluginFindings": [
+        {
+          "pluginId": "legal-compliance",
+          "text": "Добавлен риск compliance: найден юридический контекст."
+        },
+        {
+          "pluginId": "legal-compliance",
+          "text": "Добавлен риск pii: найдены признаки персональных данных."
+        }
+      ],
+      "pluginSuggestions": [
+        {
+          "pluginId": "legal-compliance",
+          "text": "Попросите legal review перед отправкой клиенту."
+        }
+      ],
+      "pluginApplied": [
+        "marketing-quality",
+        "legal-compliance"
+      ]
+    }
+  ],
+  "pluginState": {
+    "marketing-quality": true,
+    "legal-compliance": true,
+    "manager-roi": false
+  }
+}

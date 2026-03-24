@@ -1,0 +1,10 @@
+{
+  "name": "ai-workflow-auditor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MVP for tracking AI workflow ROI and quality",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
