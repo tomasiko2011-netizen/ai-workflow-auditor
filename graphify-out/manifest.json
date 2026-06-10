@@ -1,0 +1,37 @@
+{
+  "/Users/guldana/Documents/New project/ai-workflow-auditor/data/store.json": {
+    "mtime": 1772000127.2323616,
+    "ast_hash": "054854e5af69e7676ceb5c2e0f6b1481",
+    "semantic_hash": "054854e5af69e7676ceb5c2e0f6b1481"
+  },
+  "/Users/guldana/Documents/New project/ai-workflow-auditor/package.json": {
+    "mtime": 1771999894.9360628,
+    "ast_hash": "8200a7b75308d9e51066f15bd806d2cc",
+    "semantic_hash": "8200a7b75308d9e51066f15bd806d2cc"
+  },
+  "/Users/guldana/Documents/New project/ai-workflow-auditor/plugins.js": {
+    "mtime": 1772000056.1712103,
+    "ast_hash": "c8199b1c403cb23ee2b6441dc60c33de",
+    "semantic_hash": "c8199b1c403cb23ee2b6441dc60c33de"
+  },
+  "/Users/guldana/Documents/New project/ai-workflow-auditor/public/app.js": {
+    "mtime": 1772000106.0293703,
+    "ast_hash": "e3ee59baea77632adecbdf36d4303b11",
+    "semantic_hash": "e3ee59baea77632adecbdf36d4303b11"
+  },
+  "/Users/guldana/Documents/New project/ai-workflow-auditor/server.js": {
+    "mtime": 1772000194.268502,
+    "ast_hash": "2eee0da62a68e6ed7a629b55e3f1dd85",
+    "semantic_hash": "2eee0da62a68e6ed7a629b55e3f1dd85"
+  },
+  "/Users/guldana/Documents/New project/ai-workflow-auditor/README.md": {
+    "mtime": 1772000116.3514388,
+    "ast_hash": "9adef4ed1a5aa5446e05d776d2a4bc98",
+    "semantic_hash": "9adef4ed1a5aa5446e05d776d2a4bc98"
+  },
+  "/Users/guldana/Documents/New project/ai-workflow-auditor/public/index.html": {
+    "mtime": 1772000106.0179944,
+    "ast_hash": "35bf03f30b7ac51036d055403bf642e3",
+    "semantic_hash": "35bf03f30b7ac51036d055403bf642e3"
+  }
+}

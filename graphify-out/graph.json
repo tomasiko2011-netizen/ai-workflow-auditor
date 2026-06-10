@@ -1,0 +1,1224 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {
+    "hyperedges": [
+      {
+        "nodes": [
+          "readme_marketing_quality_plugin",
+          "readme_legal_compliance_plugin",
+          "readme_manager_roi_plugin"
+        ],
+        "label": "Built-in role-based plugin set",
+        "source_file": "README.md"
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "label": "store.json",
+      "file_type": "code",
+      "source_file": "data/store.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "data_store",
+      "community": 4,
+      "norm_label": "store.json"
+    },
+    {
+      "label": "tasks",
+      "file_type": "code",
+      "source_file": "data/store.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "data_store_tasks",
+      "community": 4,
+      "norm_label": "tasks"
+    },
+    {
+      "label": "pluginState",
+      "file_type": "code",
+      "source_file": "data/store.json",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "data_store_pluginstate",
+      "community": 4,
+      "norm_label": "pluginstate"
+    },
+    {
+      "label": "marketing-quality",
+      "file_type": "code",
+      "source_file": "data/store.json",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "data_store_pluginstate_marketing_quality",
+      "community": 4,
+      "norm_label": "marketing-quality"
+    },
+    {
+      "label": "legal-compliance",
+      "file_type": "code",
+      "source_file": "data/store.json",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "data_store_pluginstate_legal_compliance",
+      "community": 4,
+      "norm_label": "legal-compliance"
+    },
+    {
+      "label": "manager-roi",
+      "file_type": "code",
+      "source_file": "data/store.json",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "data_store_pluginstate_manager_roi",
+      "community": 4,
+      "norm_label": "manager-roi"
+    },
+    {
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "package",
+      "community": 2,
+      "norm_label": "package.json"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "package_name",
+      "community": 2,
+      "norm_label": "name"
+    },
+    {
+      "label": "version",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "package_version",
+      "community": 2,
+      "norm_label": "version"
+    },
+    {
+      "label": "private",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "package_private",
+      "community": 2,
+      "norm_label": "private"
+    },
+    {
+      "label": "description",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "package_description",
+      "community": 2,
+      "norm_label": "description"
+    },
+    {
+      "label": "main",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "package_main",
+      "community": 2,
+      "norm_label": "main"
+    },
+    {
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "package_scripts",
+      "community": 2,
+      "norm_label": "scripts"
+    },
+    {
+      "label": "start",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "package_scripts_start",
+      "community": 2,
+      "norm_label": "start"
+    },
+    {
+      "label": "plugins.js",
+      "file_type": "code",
+      "source_file": "plugins.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plugins",
+      "community": 5,
+      "norm_label": "plugins.js"
+    },
+    {
+      "label": "includesAny()",
+      "file_type": "code",
+      "source_file": "plugins.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plugins_includesany",
+      "community": 5,
+      "norm_label": "includesany()"
+    },
+    {
+      "label": "AVAILABLE_PLUGINS",
+      "file_type": "code",
+      "source_file": "plugins.js",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "plugins_available_plugins",
+      "community": 5,
+      "norm_label": "available_plugins"
+    },
+    {
+      "label": "normalizePluginState()",
+      "file_type": "code",
+      "source_file": "plugins.js",
+      "source_location": "L90",
+      "_origin": "ast",
+      "id": "plugins_normalizepluginstate",
+      "community": 5,
+      "norm_label": "normalizepluginstate()"
+    },
+    {
+      "label": "executePlugins()",
+      "file_type": "code",
+      "source_file": "plugins.js",
+      "source_location": "L99",
+      "_origin": "ast",
+      "id": "plugins_executeplugins",
+      "community": 5,
+      "norm_label": "executeplugins()"
+    },
+    {
+      "label": "app.js",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "public_app",
+      "community": 1,
+      "norm_label": "app.js"
+    },
+    {
+      "label": "taskForm",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "public_app_taskform",
+      "community": 1,
+      "norm_label": "taskform"
+    },
+    {
+      "label": "taskRows",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "public_app_taskrows",
+      "community": 1,
+      "norm_label": "taskrows"
+    },
+    {
+      "label": "metricsEl",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "public_app_metricsel",
+      "community": 1,
+      "norm_label": "metricsel"
+    },
+    {
+      "label": "pluginsEl",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "public_app_pluginsel",
+      "community": 1,
+      "norm_label": "pluginsel"
+    },
+    {
+      "label": "nf",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "public_app_nf",
+      "community": 1,
+      "norm_label": "nf"
+    },
+    {
+      "label": "metricCard()",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "public_app_metriccard",
+      "community": 1,
+      "norm_label": "metriccard()"
+    },
+    {
+      "label": "fetchJson()",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "public_app_fetchjson",
+      "community": 1,
+      "norm_label": "fetchjson()"
+    },
+    {
+      "label": "loadPlugins()",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "public_app_loadplugins",
+      "community": 1,
+      "norm_label": "loadplugins()"
+    },
+    {
+      "label": "loadMetrics()",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "public_app_loadmetrics",
+      "community": 1,
+      "norm_label": "loadmetrics()"
+    },
+    {
+      "label": "rowTemplate()",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L73",
+      "_origin": "ast",
+      "id": "public_app_rowtemplate",
+      "community": 1,
+      "norm_label": "rowtemplate()"
+    },
+    {
+      "label": "loadTasks()",
+      "file_type": "code",
+      "source_file": "public/app.js",
+      "source_location": "L94",
+      "_origin": "ast",
+      "id": "public_app_loadtasks",
+      "community": 1,
+      "norm_label": "loadtasks()"
+    },
+    {
+      "label": "server.js",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "server",
+      "community": 0,
+      "norm_label": "server.js"
+    },
+    {
+      "label": "http",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "server_http",
+      "community": 0,
+      "norm_label": "http"
+    },
+    {
+      "label": "fs",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "server_fs",
+      "community": 0,
+      "norm_label": "fs"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "server_path",
+      "community": 0,
+      "norm_label": "path"
+    },
+    {
+      "label": "{ AVAILABLE_PLUGINS, normalizePluginState, executePlugins }",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "server_available_plugins_normalizepluginstate_executeplugins",
+      "community": 0,
+      "norm_label": "{ available_plugins, normalizepluginstate, executeplugins }"
+    },
+    {
+      "label": "PUBLIC_DIR",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "server_public_dir",
+      "community": 0,
+      "norm_label": "public_dir"
+    },
+    {
+      "label": "DB_PATH",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "server_db_path",
+      "community": 0,
+      "norm_label": "db_path"
+    },
+    {
+      "label": "readStore()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "server_readstore",
+      "community": 5,
+      "norm_label": "readstore()"
+    },
+    {
+      "label": "writeStore()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "server_writestore",
+      "community": 0,
+      "norm_label": "writestore()"
+    },
+    {
+      "label": "sendJson()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "server_sendjson",
+      "community": 0,
+      "norm_label": "sendjson()"
+    },
+    {
+      "label": "getBody()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "server_getbody",
+      "community": 0,
+      "norm_label": "getbody()"
+    },
+    {
+      "label": "buildMetrics()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "server_buildmetrics",
+      "community": 0,
+      "norm_label": "buildmetrics()"
+    },
+    {
+      "label": "parseReviewRoute()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L96",
+      "_origin": "ast",
+      "id": "server_parsereviewroute",
+      "community": 0,
+      "norm_label": "parsereviewroute()"
+    },
+    {
+      "label": "parsePluginRoute()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L101",
+      "_origin": "ast",
+      "id": "server_parsepluginroute",
+      "community": 0,
+      "norm_label": "parsepluginroute()"
+    },
+    {
+      "label": "pluginPayload()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L106",
+      "_origin": "ast",
+      "id": "server_pluginpayload",
+      "community": 0,
+      "norm_label": "pluginpayload()"
+    },
+    {
+      "label": "serveStatic()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L116",
+      "_origin": "ast",
+      "id": "server_servestatic",
+      "community": 0,
+      "norm_label": "servestatic()"
+    },
+    {
+      "label": "server",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L145",
+      "_origin": "ast",
+      "id": "server_server",
+      "community": 0,
+      "norm_label": "server"
+    },
+    {
+      "label": "startServer()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L265",
+      "_origin": "ast",
+      "id": "server_startserver",
+      "community": 0,
+      "norm_label": "startserver()"
+    },
+    {
+      "label": "AI Workflow Auditor MVP",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "readme_ai_workflow_auditor",
+      "community": 3,
+      "norm_label": "ai workflow auditor mvp"
+    },
+    {
+      "label": "Role-Based Plugins",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "readme_role_based_plugins",
+      "community": 3,
+      "norm_label": "role-based plugins"
+    },
+    {
+      "label": "AI Time Saving Metrics",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "readme_time_saving_metrics",
+      "community": 3,
+      "norm_label": "ai time saving metrics"
+    },
+    {
+      "label": "Marketing Quality Plugin",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "readme_marketing_quality_plugin",
+      "community": 3,
+      "norm_label": "marketing quality plugin"
+    },
+    {
+      "label": "Legal Compliance Plugin",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "readme_legal_compliance_plugin",
+      "community": 3,
+      "norm_label": "legal compliance plugin"
+    },
+    {
+      "label": "Manager ROI Plugin",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "readme_manager_roi_plugin",
+      "community": 3,
+      "norm_label": "manager roi plugin"
+    },
+    {
+      "label": "AI Task Submission Form",
+      "file_type": "document",
+      "source_file": "public/index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "public_index_task_form",
+      "community": 3,
+      "norm_label": "ai task submission form"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "data/store.json",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "data_store",
+      "target": "data_store_pluginstate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "data/store.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "data_store",
+      "target": "data_store_tasks",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "data/store.json",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "data_store_pluginstate",
+      "target": "data_store_pluginstate_legal_compliance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "data/store.json",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "data_store_pluginstate",
+      "target": "data_store_pluginstate_manager_roi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "data/store.json",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "data_store_pluginstate",
+      "target": "data_store_pluginstate_marketing_quality",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_description",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_private",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_scripts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_version",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "package_scripts",
+      "target": "package_scripts_start",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plugins.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "plugins",
+      "target": "plugins_available_plugins",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plugins.js",
+      "source_location": "L99",
+      "weight": 1.0,
+      "source": "plugins",
+      "target": "plugins_executeplugins",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plugins.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "plugins",
+      "target": "plugins_includesany",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plugins.js",
+      "source_location": "L90",
+      "weight": 1.0,
+      "source": "plugins",
+      "target": "plugins_normalizepluginstate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "server",
+      "target": "plugins",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "server",
+      "target": "plugins_available_plugins",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "plugins.js",
+      "source_location": "L100",
+      "weight": 1.0,
+      "source": "plugins_executeplugins",
+      "target": "plugins_normalizepluginstate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "server",
+      "target": "plugins_normalizepluginstate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "server.js",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "server_readstore",
+      "target": "plugins_normalizepluginstate"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "server",
+      "target": "plugins_executeplugins",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_fetchjson",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L56",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_loadmetrics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_loadplugins",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L94",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_loadtasks",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_metriccard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_metricsel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_nf",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_pluginsel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_rowtemplate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_taskform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "public_app",
+      "target": "public_app_taskrows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "public_app_loadmetrics",
+      "target": "public_app_metriccard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "public_app_loadmetrics",
+      "target": "public_app_fetchjson",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "public_app_loadplugins",
+      "target": "public_app_fetchjson",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/app.js",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "public_app_loadtasks",
+      "target": "public_app_fetchjson",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_available_plugins_normalizepluginstate_executeplugins",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_buildmetrics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_db_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_fs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_getbody",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_http",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L101",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_parsepluginroute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_parsereviewroute",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L106",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_pluginpayload",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_public_dir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_readstore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_sendjson",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L145",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_server",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L116",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_servestatic",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L265",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_startserver",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_writestore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "public/index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "public_index_task_form",
+      "target": "readme_ai_workflow_auditor"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "readme_ai_workflow_auditor",
+      "target": "readme_role_based_plugins"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "readme_ai_workflow_auditor",
+      "target": "readme_time_saving_metrics"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "readme_role_based_plugins",
+      "target": "readme_legal_compliance_plugin"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "readme_role_based_plugins",
+      "target": "readme_manager_roi_plugin"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "readme_role_based_plugins",
+      "target": "readme_marketing_quality_plugin"
+    }
+  ],
+  "hyperedges": [
+    {
+      "nodes": [
+        "readme_marketing_quality_plugin",
+        "readme_legal_compliance_plugin",
+        "readme_manager_roi_plugin"
+      ],
+      "label": "Built-in role-based plugin set",
+      "source_file": "README.md"
+    }
+  ],
+  "built_at_commit": "cfbf9d0e15a91b4c776ca5eb4240e87c7123be6d"
+}
