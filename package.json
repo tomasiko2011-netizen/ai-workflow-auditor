@@ -5,6 +5,14 @@
   "description": "MVP for tracking AI workflow ROI and quality",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node scripts/smoke-test.js",
+    "usage-monitor": "node scripts/usage-monitor.js once",
+    "usage-monitor:watch": "node scripts/usage-monitor.js watch",
+    "usage-monitor:install": "node scripts/usage-monitor.js install-launchd",
+    "usage-monitor:install-statusline": "node scripts/usage-monitor.js install-statusline"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
   }
 }

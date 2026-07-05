@@ -7,7 +7,7 @@ const AVAILABLE_PLUGINS = [
   {
     id: 'marketing-quality',
     role: 'marketing',
-    name: 'Marketing Quality Plugin',
+    name: 'Качество маркетинга',
     description: 'Проверяет бренд-безопасность и гипотезы для маркетинговых задач.',
     run(task) {
       const joined = `${task.title} ${(task.riskFlags || []).join(' ')}`;
@@ -29,7 +29,7 @@ const AVAILABLE_PLUGINS = [
   {
     id: 'legal-compliance',
     role: 'legal',
-    name: 'Legal Compliance Plugin',
+    name: 'Юридический комплаенс',
     description: 'Находит задачи с признаками юридических и комплаенс рисков.',
     run(task) {
       const joined = `${task.title} ${(task.riskFlags || []).join(' ')}`;
@@ -42,7 +42,7 @@ const AVAILABLE_PLUGINS = [
           extraRisks.push('compliance');
           findings.push('Добавлен риск compliance: найден юридический контекст.');
         }
-        suggestions.push('Попросите legal review перед отправкой клиенту.');
+        suggestions.push('Попросите юридическое ревью перед отправкой клиенту.');
       }
 
       if (includesAny(joined, ['client-data', 'pii', 'персональ'])) {
@@ -58,7 +58,7 @@ const AVAILABLE_PLUGINS = [
   {
     id: 'manager-roi',
     role: 'manager',
-    name: 'Manager ROI Plugin',
+    name: 'ROI для руководителя',
     description: 'Отмечает задачи с низким ROI или высоким числом правок.',
     run(task) {
       const findings = [];

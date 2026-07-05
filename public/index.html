@@ -3,94 +3,412 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Workflow Auditor</title>
+    <title>Аудитор AI-процессов</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <main class="container">
-      <h1>AI Workflow Auditor</h1>
-      <p class="subtitle">MVP: измеряем экономию времени и качество AI-задач</p>
+      <header class="topbar">
+        <div>
+          <h1>Аудитор AI-процессов</h1>
+          <p class="subtitle">Экономия времени, качество, риски и использование Codex, Claude и других AI-инструментов</p>
+        </div>
+        <button id="logoutBtn" class="secondary small" type="button">Выйти</button>
+      </header>
 
-      <section class="card">
-        <h2>Плагины (role-based)</h2>
-        <div id="plugins" class="plugins"></div>
-      </section>
-
-      <section class="card">
-        <h2>Новая задача</h2>
-        <form id="taskForm">
-          <div class="grid">
-            <label>
-              Название
-              <input name="title" required />
-            </label>
-            <label>
-              Отдел
-              <select name="department" required>
-                <option value="marketing">Marketing</option>
-                <option value="legal">Legal</option>
-                <option value="ops">Ops</option>
-                <option value="finance">Finance</option>
-                <option value="product">Product</option>
-              </select>
-            </label>
-            <label>
-              Владелец
-              <input name="owner" required />
-            </label>
-            <label>
-              Минут без AI
-              <input type="number" name="withoutAiMinutes" min="0" required />
-            </label>
-            <label>
-              Минут с AI
-              <input type="number" name="withAiMinutes" min="0" required />
-            </label>
-            <label>
-              Правки
-              <input type="number" name="revisions" min="0" value="0" />
-            </label>
-            <label>
-              Одобрено
-              <select name="approved">
-                <option value="true">Да</option>
-                <option value="false">Нет</option>
-              </select>
-            </label>
-            <label>
-              Риски (через запятую)
-              <input name="riskFlags" placeholder="pii, compliance" />
-            </label>
-          </div>
-          <button type="submit">Сохранить</button>
+      <section id="loginPanel" class="card login-card">
+        <h2>Вход</h2>
+        <form id="loginForm" class="login-form">
+          <label>
+            Логин
+            <input name="username" value="admin" autocomplete="username" required />
+          </label>
+          <label>
+            Пароль
+            <input type="password" name="password" autocomplete="current-password" required />
+          </label>
+          <button type="submit">Войти</button>
         </form>
       </section>
 
-      <section class="card">
-        <h2>Сводка</h2>
-        <div id="metrics" class="metrics"></div>
-      </section>
+      <div id="appPanel" hidden>
+        <section class="card status-card">
+          <div>
+            <h2>Рабочая сессия</h2>
+            <p id="sessionInfo" class="subtitle"></p>
+          </div>
+          <div class="button-row">
+            <a id="exportTasksLink" class="button-link" href="/api/export/tasks.csv">Задачи CSV</a>
+            <a id="exportReportLink" class="button-link" href="/api/export/report.csv">Отчёт CSV</a>
+            <a id="exportPdfLink" class="button-link" href="/api/export/report.pdf">Отчёт PDF</a>
+          </div>
+        </section>
 
-      <section class="card">
-        <h2>Последние задачи</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Дата</th>
-              <th>Задача</th>
-              <th>Отдел</th>
-              <th>Владелец</th>
-              <th>До AI</th>
-              <th>С AI</th>
-              <th>Экономия</th>
-              <th>Качество</th>
-              <th>Плагины</th>
-              <th>Риски</th>
-            </tr>
-          </thead>
-          <tbody id="taskRows"></tbody>
-        </table>
-      </section>
+        <nav class="tabs" aria-label="Разделы дашборда">
+          <button class="tab-button active" type="button" data-tab="overview">Обзор</button>
+          <button class="tab-button" type="button" data-tab="tasks">Задачи</button>
+          <button class="tab-button" type="button" data-tab="usage">Usage</button>
+          <button class="tab-button" type="button" data-tab="rules" data-admin-only>Проверки</button>
+          <button class="tab-button" type="button" data-tab="import">Импорт</button>
+          <button class="tab-button" type="button" data-tab="users" data-admin-only>Пользователи</button>
+          <button class="tab-button" type="button" data-tab="audit">Журнал</button>
+        </nav>
+
+        <section class="tab-panel active" data-panel="overview">
+          <section class="card">
+            <h2>Сводка</h2>
+            <div id="metrics" class="metrics"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-head">
+              <h2>Графики</h2>
+              <span class="section-note">Экономия, качество, отделы и риски по текущим фильтрам</span>
+            </div>
+            <div class="charts-dashboard">
+              <div class="chart-panel">
+                <h3>Экономия по AI-инструментам</h3>
+                <div id="toolChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel">
+                <h3>Экономия по отделам</h3>
+                <div id="departmentChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel">
+                <h3>Качество</h3>
+                <div id="qualityChart" class="quality-chart"></div>
+              </div>
+              <div class="chart-panel">
+                <h3>Риски</h3>
+                <div id="riskChart" class="risk-chart"></div>
+              </div>
+              <div class="chart-panel wide-panel">
+                <h3>Пульс использования AI</h3>
+                <div id="usagePulse" class="usage-pulse"></div>
+              </div>
+              <div class="chart-panel wide-panel">
+                <h3>Матрица рисков по отделам</h3>
+                <div id="riskMatrix" class="risk-matrix"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>ROI-отчёт</h2>
+            <div id="report" class="report-grid"></div>
+          </section>
+
+          <section class="card">
+            <h2>Инсайты</h2>
+            <div id="insights" class="insights"></div>
+          </section>
+        </section>
+
+        <section class="tab-panel" data-panel="usage">
+          <section class="card">
+            <div class="section-head">
+              <div>
+                <h2>Фактическое использование AI</h2>
+                <p class="subtitle">Здесь видно реальные расходы, токены и запросы из OpenAI/Claude/Codex после импорта или синхронизации.</p>
+              </div>
+              <button id="syncUsageBtn" class="secondary small" type="button">Синхронизировать</button>
+            </div>
+            <div id="usageMetrics" class="metrics"></div>
+            <div class="charts-dashboard usage-dashboard">
+              <div class="chart-panel">
+                <h3>Расходы по провайдерам</h3>
+                <div id="usageProviderChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel">
+                <h3>Расходы по инструментам</h3>
+                <div id="usageToolChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel">
+                <h3>Стоимость по пользователям</h3>
+                <div id="usageUserChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel wide-panel">
+                <h3>Модели и проекты</h3>
+                <div id="usageModelChart" class="bar-list"></div>
+              </div>
+            </div>
+            <div id="usageSyncResult" class="hint"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-head">
+              <div>
+                <h2>Локальный монитор</h2>
+                <p class="subtitle">Автоматическая отправка usage из Claude CLI statusline и активных локальных сессий.</p>
+              </div>
+              <span id="monitorFreshness" class="status-pill muted">Нет сигнала</span>
+            </div>
+            <div id="monitorStatus" class="metrics"></div>
+            <div id="monitorDetails" class="hint"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-head">
+              <h2>Импорт usage CSV</h2>
+              <span class="section-note">Колонки: provider, tool, model, project, user, department, requests, inputTokens, outputTokens, totalTokens, costUsd, periodStart, periodEnd</span>
+            </div>
+            <form id="usageImportForm">
+              <label>
+                CSV-данные usage
+                <textarea name="csv" rows="6" placeholder="provider,tool,model,project,user,department,requests,inputTokens,outputTokens,totalTokens,costUsd,periodStart,periodEnd"></textarea>
+              </label>
+              <button type="submit">Импортировать usage</button>
+            </form>
+            <div id="usageImportResult" class="hint"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-head">
+              <h2>Импорт строк из CLI</h2>
+              <span class="section-note">Можно вставить несколько строк. Префикс `окно: Model...` сохранится как сессия.</span>
+            </div>
+            <form id="cliStatusForm">
+              <div class="grid compact-grid">
+                <label>Пользователь<input name="user" placeholder="Dana" /></label>
+                <label>Отдел<input name="department" placeholder="product" /></label>
+                <label>Сессия/окно<input name="session" placeholder="terminal-1" /></label>
+              </div>
+              <label>
+                Строки статуса CLI
+                <textarea name="line" rows="5" placeholder="botjasau: Model: Sonnet 5 | Cost: $3.48 | Session: 41.0% | Weekly: 51.0% | Ctx Used: 18.0%
+main: Model: Sonnet 5 | Cost: $1.20 | Session: 12.0% | Weekly: 52.0% | Ctx Used: 8.0%"></textarea>
+              </label>
+              <button type="submit">Импортировать CLI usage</button>
+            </form>
+            <div id="cliStatusResult" class="hint"></div>
+          </section>
+
+          <section class="card">
+            <h2>Пользователи и AI-инструменты</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Пользователь</th>
+                  <th>AI-инструмент</th>
+                  <th>Событий</th>
+                  <th>Запросы</th>
+                  <th>Токены</th>
+                  <th>Стоимость</th>
+                </tr>
+              </thead>
+              <tbody id="usageUserRows"></tbody>
+            </table>
+          </section>
+
+          <section class="card">
+            <h2>Последние usage-события</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Период</th>
+                  <th>Провайдер</th>
+                  <th>Пользователь</th>
+                  <th>Инструмент</th>
+                  <th>Модель</th>
+                  <th>Проект</th>
+                  <th>Запросы</th>
+                  <th>Токены</th>
+                  <th>Стоимость</th>
+                </tr>
+              </thead>
+              <tbody id="usageRows"></tbody>
+            </table>
+          </section>
+        </section>
+
+        <section class="tab-panel" data-panel="tasks">
+          <section class="card">
+            <div class="section-head">
+              <h2 id="formTitle">Новая задача</h2>
+              <button id="cancelEditBtn" class="secondary small" type="button" hidden>Отменить</button>
+            </div>
+            <form id="taskForm">
+              <input type="hidden" name="id" />
+              <div class="grid">
+                <label>Название<input name="title" required /></label>
+                <label>Отдел<select name="department" required>
+                  <option value="marketing">Маркетинг</option>
+                  <option value="legal">Юристы</option>
+                  <option value="ops">Операции</option>
+                  <option value="finance">Финансы</option>
+                  <option value="product">Продукт</option>
+                </select></label>
+                <label>AI-инструмент<select name="aiTool" required>
+                  <option value="Codex">Codex</option>
+                  <option value="Claude">Claude</option>
+                  <option value="ChatGPT">ChatGPT</option>
+                  <option value="Other">Другой</option>
+                  <option value="Unknown">Не указан</option>
+                </select></label>
+                <label>Владелец<input name="owner" required /></label>
+                <label>Минут без AI<input type="number" name="withoutAiMinutes" min="0" required /></label>
+                <label>Минут с AI<input type="number" name="withAiMinutes" min="0" required /></label>
+                <label>Правки<input type="number" name="revisions" min="0" value="0" /></label>
+                <label>Одобрено<select name="approved">
+                  <option value="true">Да</option>
+                  <option value="false">Нет</option>
+                </select></label>
+                <label>Риски<input name="riskFlags" placeholder="pii, compliance" /></label>
+              </div>
+              <button id="saveTaskBtn" type="submit">Сохранить</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <div class="section-head">
+              <h2>Фильтры</h2>
+              <button id="resetFiltersBtn" class="secondary small" type="button">Сбросить</button>
+            </div>
+            <form id="filterForm" class="grid compact-grid">
+              <label>Отдел<select name="department">
+                <option value="">Все</option>
+                <option value="marketing">Маркетинг</option>
+                <option value="legal">Юристы</option>
+                <option value="ops">Операции</option>
+                <option value="finance">Финансы</option>
+                <option value="product">Продукт</option>
+              </select></label>
+              <label>AI-инструмент<select name="aiTool">
+                <option value="">Все</option>
+                <option value="Codex">Codex</option>
+                <option value="Claude">Claude</option>
+                <option value="ChatGPT">ChatGPT</option>
+                <option value="Other">Другой</option>
+                <option value="Unknown">Не указан</option>
+              </select></label>
+              <label>Владелец<input name="owner" /></label>
+              <label>Риск<input name="risk" placeholder="pii" /></label>
+              <label>Статус<select name="approved">
+                <option value="">Все</option>
+                <option value="true">Одобрено</option>
+                <option value="false">На проверке</option>
+              </select></label>
+              <label>С даты<input type="date" name="from" /></label>
+              <label>По дату<input type="date" name="to" /></label>
+            </form>
+          </section>
+
+          <section class="card">
+            <h2>Задачи</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Задача</th>
+                  <th>AI</th>
+                  <th>Отдел</th>
+                  <th>Владелец</th>
+                  <th>До AI</th>
+                  <th>С AI</th>
+                  <th>Экономия</th>
+                  <th>Качество</th>
+                  <th>Проверки</th>
+                  <th>Риски</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="taskRows"></tbody>
+            </table>
+          </section>
+        </section>
+
+        <section id="rulesSection" class="tab-panel" data-panel="rules">
+          <section class="card">
+            <div class="section-head">
+              <h2>Встроенные проверки</h2>
+              <span class="section-note">Применяются к новым и обновлённым задачам</span>
+            </div>
+            <div id="plugins" class="plugins"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-head">
+              <h2>Свои правила</h2>
+              <span class="section-note">Правила добавляют риски, наблюдения и рекомендации</span>
+            </div>
+            <form id="ruleForm">
+              <input type="hidden" name="id" />
+              <div class="grid compact-grid">
+                <label>Название<input name="name" required /></label>
+                <label>Текст содержит<input name="matchText" placeholder="contract" /></label>
+                <label>Отдел<select name="matchDepartment">
+                  <option value="">Любой</option>
+                  <option value="marketing">Маркетинг</option>
+                  <option value="legal">Юристы</option>
+                  <option value="ops">Операции</option>
+                  <option value="finance">Финансы</option>
+                  <option value="product">Продукт</option>
+                </select></label>
+                <label>Мин. правок<input type="number" name="minRevisions" min="0" /></label>
+                <label>Макс. ROI %<input type="number" name="maxRoiPercent" min="0" max="100" /></label>
+                <label>Добавить риск<input name="addRisk" placeholder="quality-drift" /></label>
+                <label>Наблюдение<input name="finding" /></label>
+                <label>Рекомендация<input name="suggestion" /></label>
+                <label>Включено<select name="enabled">
+                  <option value="true">Да</option>
+                  <option value="false">Нет</option>
+                </select></label>
+              </div>
+              <button id="saveRuleBtn" type="submit">Сохранить правило</button>
+              <button id="cancelRuleBtn" class="secondary" type="button" hidden>Отменить</button>
+            </form>
+            <div id="rules" class="list-panel"></div>
+          </section>
+        </section>
+
+        <section class="tab-panel" data-panel="import">
+          <section class="card">
+            <div class="section-head">
+              <h2>Импорт CSV</h2>
+              <span class="section-note">Колонки: title, aiTool, department, owner, withoutAiMinutes, withAiMinutes, revisions, approved, riskFlags</span>
+            </div>
+            <form id="importForm">
+              <label>
+                CSV-данные
+                <textarea name="csv" rows="6" placeholder="title,aiTool,department,owner,withoutAiMinutes,withAiMinutes,revisions,approved,riskFlags"></textarea>
+              </label>
+              <button type="submit">Импортировать</button>
+            </form>
+            <div id="importResult" class="hint"></div>
+          </section>
+        </section>
+
+        <section id="usersSection" class="tab-panel" data-panel="users">
+          <section class="card">
+            <div class="section-head">
+              <h2>Пользователи и роли</h2>
+              <span class="section-note">Администратор, менеджер, ревьюер, наблюдатель</span>
+            </div>
+            <form id="userForm">
+              <div class="grid compact-grid">
+                <label>Логин<input name="username" required /></label>
+                <label>Пароль<input name="password" type="password" autocomplete="new-password" placeholder="оставьте пустым без смены" /></label>
+                <label>Роль<select name="role">
+                  <option value="viewer">Наблюдатель</option>
+                  <option value="reviewer">Ревьюер</option>
+                  <option value="manager">Менеджер</option>
+                  <option value="admin">Администратор</option>
+                </select></label>
+                <label>Отдел<input name="department" placeholder="marketing" /></label>
+              </div>
+              <button type="submit">Сохранить пользователя</button>
+            </form>
+            <div id="users" class="list-panel"></div>
+          </section>
+        </section>
+
+        <section class="tab-panel" data-panel="audit">
+          <section class="card">
+            <h2>Журнал действий</h2>
+            <div id="auditLog" class="list-panel"></div>
+          </section>
+        </section>
+      </div>
     </main>
 
     <script src="/app.js"></script>

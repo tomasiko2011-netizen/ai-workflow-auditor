@@ -1,0 +1,7 @@
+.DS_Store
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
+output/
+.vercel
+node_modules/
