@@ -500,6 +500,31 @@ button:disabled {
   font-weight: 700;
 }
 
+.session-timeline {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.timeline-head,
+.timeline-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fbfcfc;
+}
+
+.timeline-head span,
+.timeline-item span {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
 .donut-row {
   display: grid;
   grid-template-columns: 88px 1fr;

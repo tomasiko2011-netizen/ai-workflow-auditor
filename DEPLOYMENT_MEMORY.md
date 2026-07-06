@@ -5,8 +5,8 @@ Updated: 2026-07-06
 ## Live deployment
 
 - Vercel URL: https://ai-workflow-auditor-ashen.vercel.app
-- Latest deployment URL: https://ai-workflow-auditor-5leclbwwy-boss-projects-2a53f7d6.vercel.app
-- Latest inspect URL: https://vercel.com/boss-projects-2a53f7d6/ai-workflow-auditor/2zwBCEsQU8CxY9wKSyp5J1WthK3U
+- Latest deployment URL: https://ai-workflow-auditor-o2nl27z5l-boss-projects-2a53f7d6.vercel.app
+- Latest inspect URL: https://vercel.com/boss-projects-2a53f7d6/ai-workflow-auditor/oYCm6RZY8ww7kRrfb8ENLzBoZhJq
 
 ## Login
 
@@ -67,9 +67,14 @@ The serverless adapter still has an ephemeral `/tmp` fallback for local/dev cont
 - Usage filters by source, provider, user, project, and date range
 - Usage CSV export at `/api/export/usage.csv`
 - Usage drill-down by AI session/project with last-seen, tokens, requests, and cost
+- Usage session timeline in the Usage tab
 - Usage charts by day, week, month, source, project, provider, tool, user, and model
 - Usage model comparison table with cost per 1k tokens
 - Usage PDF export at `/api/export/usage.pdf`
+- Ingestion rate limit for token-based monitor uploads
+- Usage retention cleanup (`AUDITOR_USAGE_RETENTION_DAYS`, default 90 days)
+- Local statusline snapshot cleanup (`AUDITOR_SNAPSHOT_RETENTION_DAYS`, default 14 days)
+- Local project mapping file: `/Users/guldana/.ai-workflow-auditor/project-map.json`
 - ROI by AI tool, department, and owner
 - Russian tabbed dashboard: overview, tasks, checks, import, users, audit log
 - Dashboard charts by AI tool, department, quality, and risks
@@ -100,6 +105,7 @@ The serverless adapter still has an ephemeral `/tmp` fallback for local/dev cont
 - 2026-07-06: `ADMIN_PASSWORD` configured in Vercel Production/Development; old `admin/admin` login verified as rejected, configured password verified as accepted.
 - 2026-07-06: Usage filters, session drill-down, daily/source/project cost charts, and usage CSV export deployed and live-verified.
 - 2026-07-06: Usage PDF export, week/month cost charts, and model comparison table deployed and live-verified.
+- 2026-07-06: Ingestion rate limiting, usage retention, local snapshot cleanup, project-map based cwd mapping, and session timeline UI deployed.
 
 ## Saved checkpoint - 2026-07-02
 
@@ -163,11 +169,12 @@ Highest priority:
   - audit_log
   - rules
 - Add cleanup/retention policy for old usage events and statusline snapshots.
+- DONE 2026-07-06: Added usage retention and local statusline snapshot cleanup.
 
 Product improvements:
 
 - Add per-session drill-down page: session name, cwd/project, model, cost, tokens, open/closed status, timeline.
-- PARTIAL 2026-07-06: Added session drill-down table in Usage tab; dedicated page/timeline still pending.
+- DONE 2026-07-06: Added session drill-down table and timeline in Usage tab.
 - Add cost charts by day/week/month and by project folder.
 - DONE 2026-07-06: Added daily, weekly, monthly, and project-folder cost charts.
 - Add model comparison: Opus vs Sonnet, cost per useful task, tokens per result.
@@ -197,5 +204,6 @@ Quality/security:
 - Add e2e Playwright visual smoke for dashboard tabs and charts.
 - Add tests for `usage-monitor.js` parsing and dedupe behavior.
 - Add rate limiting to ingestion endpoints.
+- DONE 2026-07-06: Added token ingestion rate limiting.
 - Hide sensitive operational values from UI/logs.
 - Commit current repo state once the user approves the snapshot.

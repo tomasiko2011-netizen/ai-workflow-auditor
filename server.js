@@ -13,7 +13,10 @@ const DATA_DIR = path.join(ROOT, 'data');
 const SQLITE_PATH = path.join(DATA_DIR, 'auditor.sqlite');
 const LEGACY_STORE_PATH = path.join(DATA_DIR, 'store.json');
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
+const USAGE_RETENTION_DAYS = Number(process.env.AUDITOR_USAGE_RETENTION_DAYS || 90) || 90;
+const INGEST_RATE_LIMIT_PER_MIN = Number(process.env.AUDITOR_INGEST_RATE_LIMIT_PER_MIN || 120) || 120;
 let localMonitorStatus = null;
+const ingestRate = new Map();
 
 function ensureDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -70,6 +73,23 @@ function validIngestToken(req) {
   const left = Buffer.from(expected);
   const right = Buffer.from(received);
   return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
+function rateLimitIngest(req) {
+  const tokenHash = crypto.createHash('sha256').update(bearerToken(req)).digest('hex').slice(0, 16);
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  const current = ingestRate.get(tokenHash) || { windowStart: now, count: 0 };
+  if (now - current.windowStart >= windowMs) {
+    current.windowStart = now;
+    current.count = 0;
+  }
+  current.count += 1;
+  ingestRate.set(tokenHash, current);
+  for (const [key, value] of ingestRate.entries()) {
+    if (now - Number(value.windowStart || 0) > windowMs * 10) ingestRate.delete(key);
+  }
+  return current.count <= INGEST_RATE_LIMIT_PER_MIN;
 }
 
 function initDb() {
@@ -572,7 +592,13 @@ function saveUsageEvent(input) {
   return event;
 }
 
+function cleanupUsageEvents() {
+  const cutoff = new Date(Date.now() - USAGE_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  runSql(`DELETE FROM usage_events WHERE datetime(period_start) < datetime(${sqlValue(cutoff)});`);
+}
+
 function listUsageEvents(limit = 200) {
+  cleanupUsageEvents();
   return runSql(`SELECT * FROM usage_events ORDER BY datetime(period_start) DESC, datetime(created_at) DESC LIMIT ${Math.min(Number(limit) || 200, 1000)};`, { json: true }).map(rowToUsageEvent);
 }
 
@@ -1228,6 +1254,7 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'POST' && pathname === '/api/usage/events' && validIngestToken(req)) {
     return safeEndpoint(async () => {
+      if (!rateLimitIngest(req)) return sendJson(res, 429, { error: 'Too many usage ingests; slow down the local monitor.' });
       const body = await getBody(req);
       const rawEvents = Array.isArray(body.events) ? body.events : (body.event ? [body.event] : []);
       const events = rawEvents.filter(Boolean).map(saveUsageEvent);

@@ -15,6 +15,8 @@ const DEFAULT_CLAUDE_DIR = path.join(HOME, '.claude');
 const DEFAULT_INTERVAL_MS = 60_000;
 const STATUSLINE_BRIDGE_CONFIG = path.join(CONFIG_DIR, 'statusline-bridge.json');
 const STATUSLINE_LATEST_DIR = path.join(CONFIG_DIR, 'statusline-latest');
+const PROJECT_MAP_PATH = path.join(CONFIG_DIR, 'project-map.json');
+const SNAPSHOT_RETENTION_DAYS = Number(process.env.AUDITOR_SNAPSHOT_RETENTION_DAYS || 14) || 14;
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -82,9 +84,26 @@ function configFromEnv(args = {}) {
     department: String(args.department || process.env.AUDITOR_USAGE_DEPARTMENT || ''),
     claudeDir: String(args.claudeDir || process.env.CLAUDE_DIR || DEFAULT_CLAUDE_DIR),
     statePath: String(args.state || process.env.AUDITOR_MONITOR_STATE || DEFAULT_STATE_PATH),
+    projectMapPath: String(args.projectMap || process.env.AUDITOR_PROJECT_MAP || PROJECT_MAP_PATH),
     intervalMs: Math.max(10_000, Number(args.interval || process.env.AUDITOR_INTERVAL_MS || DEFAULT_INTERVAL_MS) || DEFAULT_INTERVAL_MS),
     dryRun: Boolean(args['dry-run'] || process.env.AUDITOR_DRY_RUN)
   };
+}
+
+function loadProjectMap(config) {
+  const raw = readJson(config.projectMapPath, []);
+  return Array.isArray(raw) ? raw : [];
+}
+
+function inferProject(cwd, config) {
+  const text = String(cwd || '');
+  const rules = loadProjectMap(config);
+  for (const rule of rules) {
+    const match = String(rule.match || '').trim();
+    if (match && text.includes(match)) return String(rule.project || rule.name || match).trim();
+  }
+  const parts = text.split(path.sep).filter(Boolean);
+  return parts.at(-1) || 'local';
 }
 
 function readClaudeSessions(claudeDir) {
@@ -210,7 +229,9 @@ function mergeCostMaps(primary, fallback) {
 
 function eventBase(config, session, cost, kind) {
   const now = new Date().toISOString();
+  const projectName = inferProject(session?.cwd || '', config);
   const parts = [
+    projectName ? `project ${projectName}` : '',
     session?.name ? `окно ${session.name}` : `session ${String(cost?.sessionId || session?.sessionId || '').slice(0, 8)}`,
     session?.status ? `status ${session.status}` : '',
     session?.cwd ? `cwd ${session.cwd}` : ''
@@ -227,6 +248,34 @@ function eventBase(config, session, cost, kind) {
     department: config.department,
     source: `claude-cli-monitor-${kind}`
   };
+}
+
+function cleanupLocalSnapshots() {
+  const cutoff = Date.now() - SNAPSHOT_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  try {
+    for (const file of fs.readdirSync(STATUSLINE_LATEST_DIR)) {
+      const filePath = path.join(STATUSLINE_LATEST_DIR, file);
+      const stat = fs.statSync(filePath);
+      if (stat.mtimeMs < cutoff) fs.unlinkSync(filePath);
+    }
+  } catch {
+    // best effort
+  }
+  const historyPath = path.join(CONFIG_DIR, 'statusline-snapshots.jsonl');
+  try {
+    const rows = fs.readFileSync(historyPath, 'utf8').split('\n').filter(Boolean);
+    const kept = rows.filter(line => {
+      try {
+        const row = JSON.parse(line);
+        return new Date(row.timestamp || 0).getTime() >= cutoff;
+      } catch {
+        return false;
+      }
+    });
+    if (kept.length !== rows.length) fs.writeFileSync(historyPath, `${kept.join('\n')}\n`, 'utf8');
+  } catch {
+    // best effort
+  }
 }
 
 function buildEvents(config, state, sessions, costs) {
@@ -348,6 +397,7 @@ async function sendEvents(config, events) {
 }
 
 async function runOnce(config) {
+  cleanupLocalSnapshots();
   const state = readJson(config.statePath, { sessions: {} }) || { sessions: {} };
   const sessions = readClaudeSessions(config.claudeDir);
   const costs = mergeCostMaps(readClaudeCosts(config.claudeDir), mergeCostMaps(readStatuslineCosts(), readBridgeCosts()));
@@ -422,6 +472,12 @@ function installLaunchAgent(config) {
   const errPath = path.join(CONFIG_DIR, 'usage-monitor.err.log');
   ensureDir(path.dirname(plistPath));
   ensureDir(CONFIG_DIR);
+  if (!fs.existsSync(config.projectMapPath)) {
+    writeJson(config.projectMapPath, [
+      { match: '/Users/guldana/Documents/New project/ai-content-platform', project: 'ai-content-platform' },
+      { match: '/Users/guldana/Documents/New project/ai-workflow-auditor', project: 'ai-workflow-auditor' }
+    ]);
+  }
 
   const env = {
     AUDITOR_URL: config.auditorUrl,
@@ -429,6 +485,7 @@ function installLaunchAgent(config) {
     AUDITOR_USAGE_DEPARTMENT: config.department,
     CLAUDE_DIR: config.claudeDir,
     AUDITOR_MONITOR_STATE: config.statePath,
+    AUDITOR_PROJECT_MAP: config.projectMapPath,
     AUDITOR_INTERVAL_MS: String(config.intervalMs)
   };
   if (config.ingestToken) {

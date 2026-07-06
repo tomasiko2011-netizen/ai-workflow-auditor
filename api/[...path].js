@@ -8,6 +8,9 @@ const STORE_PATH = path.join('/tmp', 'ai-workflow-auditor-store.json');
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
 const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || 'admin').trim();
+const MAX_USAGE_EVENTS = Number(process.env.AUDITOR_MAX_USAGE_EVENTS || 5000) || 5000;
+const USAGE_RETENTION_DAYS = Number(process.env.AUDITOR_USAGE_RETENTION_DAYS || 90) || 90;
+const INGEST_RATE_LIMIT_PER_MIN = Number(process.env.AUDITOR_INGEST_RATE_LIMIT_PER_MIN || 120) || 120;
 
 function nowIso() {
   return new Date().toISOString();
@@ -42,6 +45,7 @@ function seedStore() {
     ],
     sessions: {},
     monitorStatus: null,
+    ingestRate: {},
     rules: [],
     usageEvents: [],
     audit: []
@@ -165,6 +169,35 @@ function monitorStatusFromBody(body = {}, events = []) {
     source: String(monitor.source || 'usage-monitor'),
     version: String(monitor.version || '')
   };
+}
+
+function cleanupUsageEvents(events = []) {
+  const cutoff = Date.now() - USAGE_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  return [...events]
+    .filter(event => {
+      const timestamp = new Date(event.periodStart || event.createdAt || 0).getTime();
+      return Number.isNaN(timestamp) || timestamp >= cutoff;
+    })
+    .sort((a, b) => new Date(b.periodStart || b.createdAt) - new Date(a.periodStart || a.createdAt))
+    .slice(0, MAX_USAGE_EVENTS);
+}
+
+function rateLimitIngest(store, req) {
+  const tokenHash = crypto.createHash('sha256').update(bearerToken(req)).digest('hex').slice(0, 16);
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  store.ingestRate ||= {};
+  const current = store.ingestRate[tokenHash] || { windowStart: now, count: 0 };
+  if (now - current.windowStart >= windowMs) {
+    current.windowStart = now;
+    current.count = 0;
+  }
+  current.count += 1;
+  store.ingestRate[tokenHash] = current;
+  for (const [key, value] of Object.entries(store.ingestRate)) {
+    if (now - Number(value.windowStart || 0) > windowMs * 10) delete store.ingestRate[key];
+  }
+  return current.count <= INGEST_RATE_LIMIT_PER_MIN;
 }
 
 function text(res, code, payload, contentType, filename) {
@@ -504,7 +537,7 @@ async function syncUsageProviders(store) {
           }));
         }
       }
-      store.usageEvents = [...imported, ...(store.usageEvents || [])].slice(0, 2000);
+      store.usageEvents = cleanupUsageEvents([...imported, ...(store.usageEvents || [])]);
       results.push({ provider: 'openai', status: 'ok', imported: imported.length });
     } catch (err) {
       results.push({ provider: 'openai', status: 'error', message: err.message });
@@ -685,12 +718,16 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'POST' && rawPath === '/usage/events' && validIngestToken(req)) {
+      if (!rateLimitIngest(store, req)) {
+        await writeStore(store);
+        return json(res, 429, { error: 'Too many usage ingests; slow down the local monitor.' });
+      }
       const body = await readBody(req);
       const rawEvents = Array.isArray(body.events) ? body.events : (body.event ? [body.event] : []);
       const events = rawEvents.filter(Boolean).map(event => normalizeUsageEvent(event));
       const byId = new Map((store.usageEvents || []).map(event => [event.id, event]));
       for (const event of events) byId.set(event.id, event);
-      store.usageEvents = [...events, ...Array.from(byId.values()).filter(event => !events.some(item => item.id === event.id))].slice(0, 2000);
+      store.usageEvents = cleanupUsageEvents([...events, ...Array.from(byId.values()).filter(event => !events.some(item => item.id === event.id))]);
       store.monitorStatus = monitorStatusFromBody(body, events);
       logAudit(store, { username: 'usage-monitor', role: 'system', department: '' }, 'monitor_heartbeat', 'usage', null, store.monitorStatus);
       await writeStore(store);
@@ -792,7 +829,7 @@ module.exports = async function handler(req, res) {
     if (req.method === 'POST' && rawPath === '/usage/import') {
       const body = await readBody(req);
       const importedEvents = parseUsageCsv(String(body.csv || ''));
-      store.usageEvents = [...importedEvents, ...(store.usageEvents || [])].slice(0, 2000);
+      store.usageEvents = cleanupUsageEvents([...importedEvents, ...(store.usageEvents || [])]);
       logAudit(store, user, 'import_usage_csv', 'usage', null, { imported: importedEvents.length });
       await writeStore(store);
       return json(res, 200, { imported: importedEvents.length, summary: usageSummary(store.usageEvents || []) });
@@ -805,7 +842,7 @@ module.exports = async function handler(req, res) {
       if (!events.length && !body.monitor) return json(res, 400, { error: 'usage events or monitor heartbeat are required' });
       const byId = new Map((store.usageEvents || []).map(event => [event.id, event]));
       for (const event of events) byId.set(event.id, event);
-      store.usageEvents = [...events, ...Array.from(byId.values()).filter(event => !events.some(item => item.id === event.id))].slice(0, 2000);
+      store.usageEvents = cleanupUsageEvents([...events, ...Array.from(byId.values()).filter(event => !events.some(item => item.id === event.id))]);
       store.monitorStatus = body.monitor ? monitorStatusFromBody(body, events) : store.monitorStatus || null;
       logAudit(store, user, body.monitor ? 'monitor_heartbeat' : 'import_usage_events', 'usage', null, { imported: events.length, costUsd: events.reduce((sum, event) => sum + event.costUsd, 0), monitor: store.monitorStatus });
       await writeStore(store);
@@ -816,7 +853,7 @@ module.exports = async function handler(req, res) {
       const body = await readBody(req);
       const events = parseCliStatusBlock(body.line || body.status || body.text, { user: body.user || user.username, department: body.department || user.department || '', session: body.session || '' });
       if (!events.length) return json(res, 400, { error: 'Вставьте одну или несколько строк статуса CLI.' });
-      store.usageEvents = [...events, ...(store.usageEvents || [])].slice(0, 2000);
+      store.usageEvents = cleanupUsageEvents([...events, ...(store.usageEvents || [])]);
       logAudit(store, user, 'import_cli_usage', 'usage', null, { imported: events.length, costUsd: events.reduce((sum, event) => sum + event.costUsd, 0) });
       await writeStore(store);
       return json(res, 200, { imported: events.length, event: events[0], events, summary: usageSummary(store.usageEvents || []) });

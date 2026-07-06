@@ -202,6 +202,8 @@ npm run usage-monitor:install-statusline
 npm run usage-monitor -- --user Dana --department product
 ```
 
+После production-настройки монитор использует `AUDITOR_INGEST_TOKEN`. Для ручного запуска можно либо экспортировать токен в env, либо оставить обычный LaunchAgent. Fallback через `AUDITOR_USERNAME`/`AUDITOR_PASSWORD` нужен только для локальной разработки.
+
 Постоянный foreground-режим:
 
 ```bash
@@ -222,6 +224,9 @@ AUDITOR_INGEST_TOKEN=...
 AUDITOR_USAGE_USER=Dana
 AUDITOR_USAGE_DEPARTMENT=product
 AUDITOR_INTERVAL_MS=60000
+AUDITOR_USAGE_RETENTION_DAYS=90
+AUDITOR_SNAPSHOT_RETENTION_DAYS=14
+AUDITOR_PROJECT_MAP=/Users/guldana/.ai-workflow-auditor/project-map.json
 CLAUDE_DIR=/Users/guldana/.claude
 ```
 
@@ -231,6 +236,7 @@ State и логи:
 
 ```text
 ~/.ai-workflow-auditor/usage-monitor-state.json
+~/.ai-workflow-auditor/project-map.json
 ~/.ai-workflow-auditor/statusline-latest/*.json
 ~/.ai-workflow-auditor/statusline-snapshots.jsonl
 ~/.ai-workflow-auditor/usage-monitor.log

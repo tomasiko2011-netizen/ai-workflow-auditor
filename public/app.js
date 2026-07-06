@@ -48,6 +48,7 @@ const usageProjectChartEl = document.getElementById('usageProjectChart');
 const usageRowsEl = document.getElementById('usageRows');
 const usageUserRowsEl = document.getElementById('usageUserRows');
 const usageSessionRowsEl = document.getElementById('usageSessionRows');
+const usageSessionTimelineEl = document.getElementById('usageSessionTimeline');
 const usageModelRowsEl = document.getElementById('usageModelRows');
 const sessionInfoEl = document.getElementById('sessionInfo');
 const exportTasksLink = document.getElementById('exportTasksLink');
@@ -68,6 +69,7 @@ const nf = new Intl.NumberFormat('ru-RU');
 let tasksCache = [];
 let rulesCache = [];
 let usageCache = [];
+let usageSummaryCache = {};
 let currentUser = null;
 
 const departmentLabels = {
@@ -496,6 +498,7 @@ function renderRiskMatrix(tasks) {
 
 function renderUsage(payload) {
   const summary = payload.summary || {};
+  usageSummaryCache = summary;
   usageCache = payload.events || [];
   usageMetricsEl.innerHTML = [
     metricCard('Usage-событий', nf.format(summary.totalEvents || 0)),
@@ -568,9 +571,11 @@ function renderUsage(payload) {
         <td>${nf.format(row.tokens || 0)}</td>
         <td>${usd(row.costUsd || 0)}</td>
         <td>${esc(formatDateTime(row.lastSeenAt))}</td>
+        <td><button class="secondary small" type="button" data-session-detail="${esc(row.session)}">Показать</button></td>
       </tr>
     `).join('')
-    : '<tr><td colspan="8">AI-сессии пока не найдены.</td></tr>';
+    : '<tr><td colspan="9">AI-сессии пока не найдены.</td></tr>';
+  renderSessionTimeline((summary.bySession || [])[0]?.session || '');
   usageModelRowsEl.innerHTML = (summary.byModel || []).filter(row => row.label !== 'unknown').length
     ? summary.byModel.filter(row => row.label !== 'unknown').slice(0, 80).map(row => {
       const perThousand = row.tokens ? (Number(row.costUsd || 0) / row.tokens) * 1000 : 0;
@@ -613,6 +618,32 @@ function renderUsage(payload) {
       </tr>
     `).join('')
     : '<tr><td colspan="9">Usage-данных пока нет: нажмите синхронизацию или импортируйте CSV.</td></tr>';
+}
+
+function eventSessionName(event) {
+  return String(event.project || '').split(' / ')[0].replace(/^окно\s+/, '').replace(/^project\s+/, '').trim() || 'unknown';
+}
+
+function renderSessionTimeline(session) {
+  const selected = String(session || '').trim();
+  if (!selected) {
+    usageSessionTimelineEl.innerHTML = '<div class="empty">Выберите AI-сессию, чтобы увидеть timeline.</div>';
+    return;
+  }
+  const events = usageCache.filter(event => eventSessionName(event) === selected || String(event.project || '').includes(selected)).slice(0, 20);
+  const meta = (usageSummaryCache.bySession || []).find(row => row.session === selected);
+  usageSessionTimelineEl.innerHTML = `
+    <div class="timeline-head">
+      <strong>${esc(selected === 'unknown' ? 'Не указан' : selected)}</strong>
+      <span>${meta ? `${usd(meta.costUsd)} / ${nf.format(meta.tokens)} токенов / ${nf.format(meta.events)} событий` : ''}</span>
+    </div>
+    ${events.length ? events.map(event => `
+      <div class="timeline-item">
+        <strong>${esc(formatDateTime(event.periodStart || event.createdAt))}</strong>
+        <span>${esc(sourceLabel(event.source))} · ${esc(event.model || '-')} · ${nf.format(event.totalTokens || 0)} токенов · ${usd(event.costUsd || 0)}</span>
+      </div>
+    `).join('') : '<div class="empty">В текущей выборке нет событий этой сессии.</div>'}
+  `;
 }
 
 function renderMonitorStatus(monitor) {
@@ -1032,6 +1063,12 @@ usageFilterForm.addEventListener('input', () => {
 resetUsageFiltersBtn.addEventListener('click', async () => {
   usageFilterForm.reset();
   await loadUsage();
+});
+
+usageSessionRowsEl.addEventListener('click', e => {
+  const button = e.target.closest('button[data-session-detail]');
+  if (!button) return;
+  renderSessionTimeline(button.getAttribute('data-session-detail'));
 });
 
 cancelEditBtn.addEventListener('click', resetTaskForm);
