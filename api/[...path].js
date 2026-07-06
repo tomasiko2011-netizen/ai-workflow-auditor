@@ -339,6 +339,8 @@ function usageSummary(events = []) {
     return acc;
   }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
   const byUser = group('user');
+  const dayKey = event => String(event.periodStart || event.createdAt || '').slice(0, 10) || 'unknown';
+  const sessionKey = event => String(event.project || '').split(' / ')[0].replace(/^окно\s+/, '').trim() || event.project || 'unknown';
   const userToolRows = Object.values(events.reduce((acc, event) => {
     const user = event.user || 'unknown';
     const tool = event.tool || event.provider || 'unknown';
@@ -350,6 +352,25 @@ function usageSummary(events = []) {
     acc[key].requests += Number(event.requests) || 0;
     return acc;
   }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
+  const byDay = Object.values(events.reduce((acc, event) => {
+    const label = dayKey(event);
+    acc[label] ||= { label, events: 0, costUsd: 0, tokens: 0, requests: 0 };
+    acc[label].events += 1;
+    acc[label].costUsd += Number(event.costUsd) || 0;
+    acc[label].tokens += Number(event.totalTokens) || 0;
+    acc[label].requests += Number(event.requests) || 0;
+    return acc;
+  }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => a.label.localeCompare(b.label));
+  const bySession = Object.values(events.reduce((acc, event) => {
+    const session = sessionKey(event);
+    acc[session] ||= { session, project: event.project || '', source: event.source || '', events: 0, costUsd: 0, tokens: 0, requests: 0, lastSeenAt: '' };
+    acc[session].events += 1;
+    acc[session].costUsd += Number(event.costUsd) || 0;
+    acc[session].tokens += Number(event.totalTokens) || 0;
+    acc[session].requests += Number(event.requests) || 0;
+    acc[session].lastSeenAt = [acc[session].lastSeenAt, event.periodEnd || event.createdAt || ''].sort().at(-1) || '';
+    return acc;
+  }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
   return {
     totalEvents: events.length,
     totalCostUsd: +totalCostUsd.toFixed(4),
@@ -359,10 +380,27 @@ function usageSummary(events = []) {
     byTool: group('tool'),
     byModel: group('model'),
     byProject: group('project'),
+    bySource: group('source'),
+    byDay,
     byUser,
     userToolRows,
+    bySession,
     lastUpdated: events[0]?.createdAt || null
   };
+}
+
+function filterUsageEvents(events = [], params = {}) {
+  const source = params.source || params.usageSource || '';
+  return events.filter(event => {
+    if (source && event.source !== source) return false;
+    if (params.provider && event.provider !== params.provider) return false;
+    if (params.tool && event.tool !== params.tool) return false;
+    if (params.user && event.user !== params.user) return false;
+    if (params.project && !String(event.project || '').toLowerCase().includes(String(params.project).toLowerCase())) return false;
+    if (params.from && new Date(event.periodStart || event.createdAt) < new Date(params.from)) return false;
+    if (params.to && new Date(event.periodStart || event.createdAt) > new Date(`${params.to}T23:59:59`)) return false;
+    return true;
+  }).sort((a, b) => new Date(b.periodStart || b.createdAt) - new Date(a.periodStart || a.createdAt));
 }
 
 function parseUsageCsv(csv) {
@@ -523,6 +561,14 @@ function reportCsv(rep) {
   return rows.map(row => row.map(csvCell).join(',')).join('\n');
 }
 
+function usageCsv(events) {
+  const rows = [['id', 'createdAt', 'periodStart', 'periodEnd', 'provider', 'tool', 'model', 'project', 'user', 'department', 'requests', 'inputTokens', 'outputTokens', 'totalTokens', 'costUsd', 'source']];
+  for (const event of events) {
+    rows.push([event.id, event.createdAt, event.periodStart, event.periodEnd, event.provider, event.tool, event.model, event.project, event.user, event.department, event.requests, event.inputTokens, event.outputTokens, event.totalTokens, event.costUsd, event.source]);
+  }
+  return rows.map(row => row.map(csvCell).join(',')).join('\n');
+}
+
 function pdfText(value) {
   return String(value ?? '').replace(/[\\()]/g, '\\$&').replace(/[^\x20-\x7E]/g, '?');
 }
@@ -626,7 +672,10 @@ module.exports = async function handler(req, res) {
     }
     if (req.method === 'GET' && rawPath === '/rules') return json(res, 200, store.rules);
     if (req.method === 'GET' && rawPath === '/audit') return json(res, 200, store.audit.slice(0, Number(params.limit) || 50));
-    if (req.method === 'GET' && rawPath === '/usage') return json(res, 200, { events: (store.usageEvents || []).slice(0, 200), summary: usageSummary(store.usageEvents || []), monitor: store.monitorStatus || null });
+    if (req.method === 'GET' && rawPath === '/usage') {
+      const usageEvents = filterUsageEvents(store.usageEvents || [], params);
+      return json(res, 200, { events: usageEvents.slice(0, 200), summary: usageSummary(usageEvents), monitor: store.monitorStatus || null });
+    }
     if (req.method === 'GET' && rawPath === '/users') {
       if (user.role !== 'admin') return json(res, 403, { error: 'admin role required' });
       return json(res, 200, store.users.map(publicUser));
@@ -646,6 +695,12 @@ module.exports = async function handler(req, res) {
       logAudit(store, user, 'export_report_pdf', 'report');
       await writeStore(store);
       return text(res, 200, reportPdf(rep, insights(rep)), 'application/pdf', 'ai-workflow-report.pdf');
+    }
+    if (req.method === 'GET' && rawPath === '/export/usage.csv') {
+      const usageEvents = filterUsageEvents(store.usageEvents || [], params);
+      logAudit(store, user, 'export_usage_csv', 'usage');
+      await writeStore(store);
+      return text(res, 200, usageCsv(usageEvents), 'text/csv; charset=utf-8', 'ai-workflow-usage.csv');
     }
 
     const pluginMatch = rawPath.match(/^\/plugins\/([^/]+)$/);

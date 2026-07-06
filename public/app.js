@@ -6,10 +6,12 @@ const taskForm = document.getElementById('taskForm');
 const filterForm = document.getElementById('filterForm');
 const importForm = document.getElementById('importForm');
 const usageImportForm = document.getElementById('usageImportForm');
+const usageFilterForm = document.getElementById('usageFilterForm');
 const cliStatusForm = document.getElementById('cliStatusForm');
 const ruleForm = document.getElementById('ruleForm');
 const userForm = document.getElementById('userForm');
 const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+const resetUsageFiltersBtn = document.getElementById('resetUsageFiltersBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 const cancelRuleBtn = document.getElementById('cancelRuleBtn');
 const saveTaskBtn = document.getElementById('saveTaskBtn');
@@ -29,6 +31,7 @@ const cliStatusResultEl = document.getElementById('cliStatusResult');
 const usageSyncResultEl = document.getElementById('usageSyncResult');
 const syncUsageBtn = document.getElementById('syncUsageBtn');
 const usageMetricsEl = document.getElementById('usageMetrics');
+const exportUsageLink = document.getElementById('exportUsageLink');
 const monitorFreshnessEl = document.getElementById('monitorFreshness');
 const monitorStatusEl = document.getElementById('monitorStatus');
 const monitorDetailsEl = document.getElementById('monitorDetails');
@@ -36,8 +39,12 @@ const usageProviderChartEl = document.getElementById('usageProviderChart');
 const usageToolChartEl = document.getElementById('usageToolChart');
 const usageUserChartEl = document.getElementById('usageUserChart');
 const usageModelChartEl = document.getElementById('usageModelChart');
+const usageDayChartEl = document.getElementById('usageDayChart');
+const usageSourceChartEl = document.getElementById('usageSourceChart');
+const usageProjectChartEl = document.getElementById('usageProjectChart');
 const usageRowsEl = document.getElementById('usageRows');
 const usageUserRowsEl = document.getElementById('usageUserRows');
+const usageSessionRowsEl = document.getElementById('usageSessionRows');
 const sessionInfoEl = document.getElementById('sessionInfo');
 const exportTasksLink = document.getElementById('exportTasksLink');
 const exportReportLink = document.getElementById('exportReportLink');
@@ -102,6 +109,7 @@ const actionLabels = {
   export_report_csv: 'Экспорт отчёта CSV',
   export_report_pdf: 'Экспорт отчёта PDF',
   import_usage_csv: 'Импорт usage CSV',
+  export_usage_csv: 'Экспорт usage CSV',
   sync_usage: 'Синхронизация usage',
   import_cli_usage: 'Импорт CLI usage',
   update_plugin: 'Изменение проверки',
@@ -152,6 +160,26 @@ function riskLabel(value) {
     'quality-drift': 'Дрейф качества'
   };
   return labels[value] || value;
+}
+
+function sourceLabel(value) {
+  const labels = {
+    'claude-cli-monitor-delta': 'Монитор: дельта',
+    'claude-cli-monitor-open': 'Монитор: открытие',
+    'claude-cli-monitor-close': 'Монитор: закрытие',
+    'claude-cli-status': 'CLI paste',
+    'openai-costs-api': 'OpenAI Costs API',
+    manual: 'Ручной импорт',
+    unknown: 'Не указан'
+  };
+  return labels[value] || value || 'Не указан';
+}
+
+function formatDateTime(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
 function listText(items, mapper = value => value) {
@@ -210,10 +238,21 @@ function filterQuery() {
   return query ? `?${query}` : '';
 }
 
+function usageFilterQuery() {
+  const params = new URLSearchParams();
+  new FormData(usageFilterForm).forEach((value, key) => {
+    const text = String(value || '').trim();
+    if (text) params.set(key, text);
+  });
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
 function updateExportLinks() {
   exportTasksLink.href = `/api/export/tasks.csv${filterQuery()}`;
   exportReportLink.href = `/api/export/report.csv${filterQuery()}`;
   exportPdfLink.href = `/api/export/report.pdf${filterQuery()}`;
+  exportUsageLink.href = `/api/export/usage.csv${usageFilterQuery()}`;
 }
 
 function taskPayloadFromForm() {
@@ -482,6 +521,38 @@ function renderUsage(payload) {
     meta: `${usd(row.costUsd)} / ${nf.format(row.requests)} запросов`,
     tone: 'warn'
   })), { empty: 'Данных по моделям пока нет' });
+  chartRows(usageDayChartEl, (summary.byDay || []).slice(-14).map(row => ({
+    label: row.label === 'unknown' ? 'Не указан' : new Date(`${row.label}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }),
+    value: row.costUsd || row.tokens || row.requests,
+    meta: `${usd(row.costUsd)} / ${nf.format(row.tokens)} токенов / ${nf.format(row.events)} событий`,
+    tone: 'alt'
+  })), { empty: 'Данных по дням пока нет' });
+  chartRows(usageSourceChartEl, (summary.bySource || []).map(row => ({
+    label: sourceLabel(row.label),
+    value: row.costUsd || row.tokens || row.requests,
+    meta: `${usd(row.costUsd)} / ${nf.format(row.events)} событий`,
+    tone: 'warn'
+  })), { empty: 'Данных по источникам пока нет' });
+  chartRows(usageProjectChartEl, (summary.byProject || []).slice(0, 10).map(row => ({
+    label: row.label === 'unknown' ? 'Не указан' : row.label,
+    value: row.costUsd || row.tokens || row.requests,
+    meta: `${usd(row.costUsd)} / ${nf.format(row.tokens)} токенов`,
+    tone: 'danger'
+  })), { empty: 'Данных по проектам пока нет' });
+  usageSessionRowsEl.innerHTML = (summary.bySession || []).length
+    ? summary.bySession.slice(0, 80).map(row => `
+      <tr>
+        <td>${esc(row.session === 'unknown' ? 'Не указан' : row.session)}</td>
+        <td>${esc(row.project || '-')}</td>
+        <td>${esc(sourceLabel(row.source))}</td>
+        <td>${nf.format(row.events || 0)}</td>
+        <td>${nf.format(row.requests || 0)}</td>
+        <td>${nf.format(row.tokens || 0)}</td>
+        <td>${usd(row.costUsd || 0)}</td>
+        <td>${esc(formatDateTime(row.lastSeenAt))}</td>
+      </tr>
+    `).join('')
+    : '<tr><td colspan="8">AI-сессии пока не найдены.</td></tr>';
   usageUserRowsEl.innerHTML = (summary.userToolRows || []).length
     ? summary.userToolRows.slice(0, 80).map(row => `
       <tr>
@@ -539,7 +610,7 @@ function renderMonitorStatus(monitor) {
   const details = [
     `Источник: ${monitor.source || 'usage-monitor'}`,
     `Пользователь: ${monitor.user || '-'}`,
-    `Отдел: ${departmentLabel(monitor.department || '')}`,
+    `Отдел: ${label(departmentLabels, monitor.department || '')}`,
     `Наблюдаемых сессий: ${nf.format(monitor.observedSessions || 0)}`,
     `Cost rows: ${nf.format(monitor.costRows || 0)}`,
     monitor.lastError ? `Ошибка: ${monitor.lastError}` : ''
@@ -548,7 +619,8 @@ function renderMonitorStatus(monitor) {
 }
 
 async function loadUsage() {
-  renderUsage(await fetchJson('/api/usage'));
+  updateExportLinks();
+  renderUsage(await fetchJson(`/api/usage${usageFilterQuery()}`));
 }
 
 function reportTable(title, rows, valueLabel, formatter = value => value) {
@@ -917,6 +989,16 @@ filterForm.addEventListener('input', () => {
 resetFiltersBtn.addEventListener('click', async () => {
   filterForm.reset();
   await refreshData();
+});
+
+usageFilterForm.addEventListener('input', () => {
+  clearTimeout(usageFilterForm._timer);
+  usageFilterForm._timer = setTimeout(() => loadUsage().catch(err => alert(err.message)), 250);
+});
+
+resetUsageFiltersBtn.addEventListener('click', async () => {
+  usageFilterForm.reset();
+  await loadUsage();
 });
 
 cancelEditBtn.addEventListener('click', resetTaskForm);

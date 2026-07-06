@@ -138,6 +138,13 @@ async function main() {
     });
     const heartbeatUsage = await request('/api/usage');
     if (!heartbeatUsage.body.monitor || heartbeatUsage.body.monitor.activeSessions !== 3) throw new Error('monitor heartbeat missing from usage payload');
+    if (!heartbeatUsage.body.summary.bySession?.length) throw new Error('usage summary missing session breakdown');
+    if (!heartbeatUsage.body.summary.byDay?.length) throw new Error('usage summary missing day breakdown');
+    if (!heartbeatUsage.body.summary.bySource?.some(row => row.label === 'claude-cli-monitor-delta')) throw new Error('usage summary missing source breakdown');
+    const filteredUsage = await request('/api/usage?source=claude-cli-monitor-delta');
+    if (!filteredUsage.body.events.every(event => event.source === 'claude-cli-monitor-delta')) throw new Error('usage source filter returned wrong events');
+    const usageExport = await request('/api/export/usage.csv?source=claude-cli-monitor-delta');
+    if (!String(usageExport.body).includes('"source"') || !String(usageExport.body).includes('claude-cli-monitor-delta')) throw new Error('usage CSV export missing expected data');
     const sync = await request('/api/usage/sync', { method: 'POST' });
     if (!Array.isArray(sync.body.results)) throw new Error('usage sync did not return provider statuses');
 

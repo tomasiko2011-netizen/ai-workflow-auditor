@@ -590,6 +590,8 @@ function usageSummary(events = []) {
     return acc;
   }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
   const byUser = group('user');
+  const dayKey = event => String(event.periodStart || event.createdAt || '').slice(0, 10) || 'unknown';
+  const sessionKey = event => String(event.project || '').split(' / ')[0].replace(/^окно\s+/, '').trim() || event.project || 'unknown';
   const userToolRows = Object.values(events.reduce((acc, event) => {
     const user = event.user || 'unknown';
     const tool = event.tool || event.provider || 'unknown';
@@ -601,7 +603,40 @@ function usageSummary(events = []) {
     acc[key].requests += Number(event.requests) || 0;
     return acc;
   }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
-  return { totalEvents: events.length, totalCostUsd: +totalCostUsd.toFixed(4), totalTokens, totalRequests, byProvider: group('provider'), byTool: group('tool'), byModel: group('model'), byProject: group('project'), byUser, userToolRows, lastUpdated: events[0]?.createdAt || null };
+  const byDay = Object.values(events.reduce((acc, event) => {
+    const label = dayKey(event);
+    acc[label] ||= { label, events: 0, costUsd: 0, tokens: 0, requests: 0 };
+    acc[label].events += 1;
+    acc[label].costUsd += Number(event.costUsd) || 0;
+    acc[label].tokens += Number(event.totalTokens) || 0;
+    acc[label].requests += Number(event.requests) || 0;
+    return acc;
+  }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => a.label.localeCompare(b.label));
+  const bySession = Object.values(events.reduce((acc, event) => {
+    const session = sessionKey(event);
+    acc[session] ||= { session, project: event.project || '', source: event.source || '', events: 0, costUsd: 0, tokens: 0, requests: 0, lastSeenAt: '' };
+    acc[session].events += 1;
+    acc[session].costUsd += Number(event.costUsd) || 0;
+    acc[session].tokens += Number(event.totalTokens) || 0;
+    acc[session].requests += Number(event.requests) || 0;
+    acc[session].lastSeenAt = [acc[session].lastSeenAt, event.periodEnd || event.createdAt || ''].sort().at(-1) || '';
+    return acc;
+  }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
+  return { totalEvents: events.length, totalCostUsd: +totalCostUsd.toFixed(4), totalTokens, totalRequests, byProvider: group('provider'), byTool: group('tool'), byModel: group('model'), byProject: group('project'), bySource: group('source'), byDay, byUser, userToolRows, bySession, lastUpdated: events[0]?.createdAt || null };
+}
+
+function filterUsageEvents(events = [], params = {}) {
+  const source = params.source || params.usageSource || '';
+  return events.filter(event => {
+    if (source && event.source !== source) return false;
+    if (params.provider && event.provider !== params.provider) return false;
+    if (params.tool && event.tool !== params.tool) return false;
+    if (params.user && event.user !== params.user) return false;
+    if (params.project && !String(event.project || '').toLowerCase().includes(String(params.project).toLowerCase())) return false;
+    if (params.from && new Date(event.periodStart || event.createdAt) < new Date(params.from)) return false;
+    if (params.to && new Date(event.periodStart || event.createdAt) > new Date(`${params.to}T23:59:59`)) return false;
+    return true;
+  }).sort((a, b) => new Date(b.periodStart || b.createdAt) - new Date(a.periodStart || a.createdAt));
 }
 
 function monitorStatusFromBody(body = {}, events = []) {
@@ -868,6 +903,14 @@ function reportCsv(report) {
   for (const row of report.byDepartment) rows.push(['department', row.label, row.tasks, row.savedHours, row.approvalRate, row.revisionsAvg]);
   for (const row of report.byTool) rows.push(['tool', row.label, row.tasks, row.savedHours, row.approvalRate, row.revisionsAvg]);
   for (const row of report.byOwner) rows.push(['owner', row.label, row.tasks, row.savedHours, row.approvalRate, row.revisionsAvg]);
+  return rows.map(row => row.map(csvCell).join(',')).join('\n');
+}
+
+function usageCsv(events) {
+  const rows = [['id', 'createdAt', 'periodStart', 'periodEnd', 'provider', 'tool', 'model', 'project', 'user', 'department', 'requests', 'inputTokens', 'outputTokens', 'totalTokens', 'costUsd', 'source']];
+  for (const event of events) {
+    rows.push([event.id, event.createdAt, event.periodStart, event.periodEnd, event.provider, event.tool, event.model, event.project, event.user, event.department, event.requests, event.inputTokens, event.outputTokens, event.totalTokens, event.costUsd, event.source]);
+  }
   return rows.map(row => row.map(csvCell).join(',')).join('\n');
 }
 
@@ -1168,8 +1211,8 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && pathname === '/api/rules') return sendJson(res, 200, listRules());
   if (req.method === 'GET' && pathname === '/api/audit') return sendJson(res, 200, listAudit(queryParams(urlObj)));
   if (req.method === 'GET' && pathname === '/api/usage') {
-    const events = listUsageEvents(200);
-    return sendJson(res, 200, { events, summary: usageSummary(listUsageEvents(1000)), monitor: localMonitorStatus });
+    const usageEvents = filterUsageEvents(listUsageEvents(1000), queryParams(urlObj));
+    return sendJson(res, 200, { events: usageEvents.slice(0, 200), summary: usageSummary(usageEvents), monitor: localMonitorStatus });
   }
   if (req.method === 'GET' && pathname === '/api/users') {
     try {
@@ -1209,6 +1252,12 @@ const server = http.createServer(async (req, res) => {
     const pdf = reportPdf(report, buildInsights(report));
     logAudit(user, 'export_report_pdf', 'report', null);
     return sendText(res, 200, pdf, 'application/pdf', { 'Content-Disposition': 'attachment; filename="ai-workflow-report.pdf"' });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/export/usage.csv') {
+    const csv = usageCsv(filterUsageEvents(listUsageEvents(1000), queryParams(urlObj)));
+    logAudit(user, 'export_usage_csv', 'usage', null);
+    return sendText(res, 200, csv, 'text/csv; charset=utf-8', { 'Content-Disposition': 'attachment; filename="ai-workflow-usage.csv"' });
   }
 
   const pluginId = parsePluginRoute(pathname);

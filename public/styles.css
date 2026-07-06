@@ -338,6 +338,14 @@ button:disabled {
   margin-top: 12px;
 }
 
+.usage-filters {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(120px, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 14px;
+}
+
 .chart-panel {
   min-height: 210px;
   border: 1px solid var(--line);
@@ -643,6 +651,10 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .usage-filters {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
   .wide-panel {
     grid-column: auto;
   }
@@ -664,8 +676,13 @@ th {
   }
 
   .tab-button,
-  .button-link {
+  .button-link,
+  .usage-filters button {
     width: 100%;
+  }
+
+  .usage-filters {
+    grid-template-columns: 1fr;
   }
 
   .donut-row {

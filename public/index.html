@@ -111,8 +111,28 @@
                 <h2>Фактическое использование AI</h2>
                 <p class="subtitle">Здесь видно реальные расходы, токены и запросы из OpenAI/Claude/Codex после импорта или синхронизации.</p>
               </div>
-              <button id="syncUsageBtn" class="secondary small" type="button">Синхронизировать</button>
+              <div class="button-row">
+                <a id="exportUsageLink" class="button-link" href="/api/export/usage.csv">Usage CSV</a>
+                <button id="syncUsageBtn" class="secondary small" type="button">Синхронизировать</button>
+              </div>
             </div>
+            <form id="usageFilterForm" class="usage-filters">
+              <label>Источник<select name="source">
+                <option value="">Все</option>
+                <option value="claude-cli-monitor-delta">Монитор: дельты</option>
+                <option value="claude-cli-monitor-open">Монитор: открытие</option>
+                <option value="claude-cli-monitor-close">Монитор: закрытие</option>
+                <option value="claude-cli-status">CLI paste</option>
+                <option value="manual">Ручной импорт</option>
+                <option value="openai-costs-api">OpenAI Costs API</option>
+              </select></label>
+              <label>Провайдер<input name="provider" placeholder="claude-subscription" /></label>
+              <label>Пользователь<input name="user" placeholder="Dana" /></label>
+              <label>Проект/папка<input name="project" placeholder="ai-content-platform" /></label>
+              <label>С даты<input type="date" name="from" /></label>
+              <label>По дату<input type="date" name="to" /></label>
+              <button id="resetUsageFiltersBtn" class="secondary small" type="button">Сбросить</button>
+            </form>
             <div id="usageMetrics" class="metrics"></div>
             <div class="charts-dashboard usage-dashboard">
               <div class="chart-panel">
@@ -130,6 +150,18 @@
               <div class="chart-panel wide-panel">
                 <h3>Модели и проекты</h3>
                 <div id="usageModelChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel wide-panel">
+                <h3>Стоимость по дням</h3>
+                <div id="usageDayChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel">
+                <h3>Источники usage</h3>
+                <div id="usageSourceChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel">
+                <h3>Проекты и папки</h3>
+                <div id="usageProjectChart" class="bar-list"></div>
               </div>
             </div>
             <div id="usageSyncResult" class="hint"></div>
@@ -181,6 +213,25 @@ main: Model: Sonnet 5 | Cost: $1.20 | Session: 12.0% | Weekly: 52.0% | Ctx Used:
               <button type="submit">Импортировать CLI usage</button>
             </form>
             <div id="cliStatusResult" class="hint"></div>
+          </section>
+
+          <section class="card">
+            <h2>AI-сессии</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Сессия</th>
+                  <th>Проект/папка</th>
+                  <th>Источник</th>
+                  <th>Событий</th>
+                  <th>Запросы</th>
+                  <th>Токены</th>
+                  <th>Стоимость</th>
+                  <th>Последний сигнал</th>
+                </tr>
+              </thead>
+              <tbody id="usageSessionRows"></tbody>
+            </table>
           </section>
 
           <section class="card">
