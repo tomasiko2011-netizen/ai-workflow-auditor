@@ -340,6 +340,14 @@ function usageSummary(events = []) {
   }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
   const byUser = group('user');
   const dayKey = event => String(event.periodStart || event.createdAt || '').slice(0, 10) || 'unknown';
+  const monthKey = event => dayKey(event).slice(0, 7) || 'unknown';
+  const weekKey = event => {
+    const date = new Date(`${dayKey(event)}T00:00:00Z`);
+    if (Number.isNaN(date.getTime())) return 'unknown';
+    const monday = new Date(date);
+    monday.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+    return monday.toISOString().slice(0, 10);
+  };
   const sessionKey = event => String(event.project || '').split(' / ')[0].replace(/^окно\s+/, '').trim() || event.project || 'unknown';
   const userToolRows = Object.values(events.reduce((acc, event) => {
     const user = event.user || 'unknown';
@@ -354,6 +362,15 @@ function usageSummary(events = []) {
   }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
   const byDay = Object.values(events.reduce((acc, event) => {
     const label = dayKey(event);
+    acc[label] ||= { label, events: 0, costUsd: 0, tokens: 0, requests: 0 };
+    acc[label].events += 1;
+    acc[label].costUsd += Number(event.costUsd) || 0;
+    acc[label].tokens += Number(event.totalTokens) || 0;
+    acc[label].requests += Number(event.requests) || 0;
+    return acc;
+  }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => a.label.localeCompare(b.label));
+  const rollup = keyFn => Object.values(events.reduce((acc, event) => {
+    const label = keyFn(event);
     acc[label] ||= { label, events: 0, costUsd: 0, tokens: 0, requests: 0 };
     acc[label].events += 1;
     acc[label].costUsd += Number(event.costUsd) || 0;
@@ -382,6 +399,8 @@ function usageSummary(events = []) {
     byProject: group('project'),
     bySource: group('source'),
     byDay,
+    byWeek: rollup(weekKey),
+    byMonth: rollup(monthKey),
     byUser,
     userToolRows,
     bySession,
@@ -609,6 +628,26 @@ function reportPdf(rep, ins) {
   return simplePdf(lines);
 }
 
+function usagePdf(events) {
+  const summary = usageSummary(events);
+  const lines = [
+    'Usage report',
+    `Generated: ${nowIso()}`,
+    `Events: ${summary.totalEvents}`,
+    `Cost USD: ${summary.totalCostUsd}`,
+    `Tokens: ${summary.totalTokens}`,
+    `Requests: ${summary.totalRequests}`,
+    '',
+    'Models:'
+  ];
+  for (const row of (summary.byModel || []).slice(0, 8)) lines.push(`${row.label}: $${row.costUsd}, ${row.tokens} tokens, ${row.requests} requests`);
+  lines.push('', 'Sources:');
+  for (const row of (summary.bySource || []).slice(0, 8)) lines.push(`${row.label}: $${row.costUsd}, ${row.events} events`);
+  lines.push('', 'Sessions:');
+  for (const row of (summary.bySession || []).slice(0, 8)) lines.push(`${row.session}: $${row.costUsd}, ${row.tokens} tokens`);
+  return simplePdf(lines);
+}
+
 function parseCsv(textValue) {
   const lines = String(textValue || '').trim().split(/\r?\n/).filter(Boolean);
   if (lines.length < 2) return [];
@@ -701,6 +740,12 @@ module.exports = async function handler(req, res) {
       logAudit(store, user, 'export_usage_csv', 'usage');
       await writeStore(store);
       return text(res, 200, usageCsv(usageEvents), 'text/csv; charset=utf-8', 'ai-workflow-usage.csv');
+    }
+    if (req.method === 'GET' && rawPath === '/export/usage.pdf') {
+      const usageEvents = filterUsageEvents(store.usageEvents || [], params);
+      logAudit(store, user, 'export_usage_pdf', 'usage');
+      await writeStore(store);
+      return text(res, 200, usagePdf(usageEvents), 'application/pdf', 'ai-workflow-usage.pdf');
     }
 
     const pluginMatch = rawPath.match(/^\/plugins\/([^/]+)$/);

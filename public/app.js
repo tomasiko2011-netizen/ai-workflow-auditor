@@ -32,6 +32,7 @@ const usageSyncResultEl = document.getElementById('usageSyncResult');
 const syncUsageBtn = document.getElementById('syncUsageBtn');
 const usageMetricsEl = document.getElementById('usageMetrics');
 const exportUsageLink = document.getElementById('exportUsageLink');
+const exportUsagePdfLink = document.getElementById('exportUsagePdfLink');
 const monitorFreshnessEl = document.getElementById('monitorFreshness');
 const monitorStatusEl = document.getElementById('monitorStatus');
 const monitorDetailsEl = document.getElementById('monitorDetails');
@@ -40,11 +41,14 @@ const usageToolChartEl = document.getElementById('usageToolChart');
 const usageUserChartEl = document.getElementById('usageUserChart');
 const usageModelChartEl = document.getElementById('usageModelChart');
 const usageDayChartEl = document.getElementById('usageDayChart');
+const usageWeekChartEl = document.getElementById('usageWeekChart');
+const usageMonthChartEl = document.getElementById('usageMonthChart');
 const usageSourceChartEl = document.getElementById('usageSourceChart');
 const usageProjectChartEl = document.getElementById('usageProjectChart');
 const usageRowsEl = document.getElementById('usageRows');
 const usageUserRowsEl = document.getElementById('usageUserRows');
 const usageSessionRowsEl = document.getElementById('usageSessionRows');
+const usageModelRowsEl = document.getElementById('usageModelRows');
 const sessionInfoEl = document.getElementById('sessionInfo');
 const exportTasksLink = document.getElementById('exportTasksLink');
 const exportReportLink = document.getElementById('exportReportLink');
@@ -110,6 +114,7 @@ const actionLabels = {
   export_report_pdf: 'Экспорт отчёта PDF',
   import_usage_csv: 'Импорт usage CSV',
   export_usage_csv: 'Экспорт usage CSV',
+  export_usage_pdf: 'Экспорт usage PDF',
   sync_usage: 'Синхронизация usage',
   import_cli_usage: 'Импорт CLI usage',
   update_plugin: 'Изменение проверки',
@@ -253,6 +258,7 @@ function updateExportLinks() {
   exportReportLink.href = `/api/export/report.csv${filterQuery()}`;
   exportPdfLink.href = `/api/export/report.pdf${filterQuery()}`;
   exportUsageLink.href = `/api/export/usage.csv${usageFilterQuery()}`;
+  exportUsagePdfLink.href = `/api/export/usage.pdf${usageFilterQuery()}`;
 }
 
 function taskPayloadFromForm() {
@@ -527,6 +533,18 @@ function renderUsage(payload) {
     meta: `${usd(row.costUsd)} / ${nf.format(row.tokens)} токенов / ${nf.format(row.events)} событий`,
     tone: 'alt'
   })), { empty: 'Данных по дням пока нет' });
+  chartRows(usageWeekChartEl, (summary.byWeek || []).slice(-8).map(row => ({
+    label: row.label === 'unknown' ? 'Не указан' : `с ${new Date(`${row.label}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}`,
+    value: row.costUsd || row.tokens || row.requests,
+    meta: `${usd(row.costUsd)} / ${nf.format(row.events)} событий`,
+    tone: 'alt'
+  })), { empty: 'Данных по неделям пока нет' });
+  chartRows(usageMonthChartEl, (summary.byMonth || []).slice(-8).map(row => ({
+    label: row.label === 'unknown' ? 'Не указан' : row.label,
+    value: row.costUsd || row.tokens || row.requests,
+    meta: `${usd(row.costUsd)} / ${nf.format(row.events)} событий`,
+    tone: 'warn'
+  })), { empty: 'Данных по месяцам пока нет' });
   chartRows(usageSourceChartEl, (summary.bySource || []).map(row => ({
     label: sourceLabel(row.label),
     value: row.costUsd || row.tokens || row.requests,
@@ -553,6 +571,21 @@ function renderUsage(payload) {
       </tr>
     `).join('')
     : '<tr><td colspan="8">AI-сессии пока не найдены.</td></tr>';
+  usageModelRowsEl.innerHTML = (summary.byModel || []).filter(row => row.label !== 'unknown').length
+    ? summary.byModel.filter(row => row.label !== 'unknown').slice(0, 80).map(row => {
+      const perThousand = row.tokens ? (Number(row.costUsd || 0) / row.tokens) * 1000 : 0;
+      return `
+        <tr>
+          <td>${esc(row.label)}</td>
+          <td>${nf.format(row.events || 0)}</td>
+          <td>${nf.format(row.requests || 0)}</td>
+          <td>${nf.format(row.tokens || 0)}</td>
+          <td>${usd(row.costUsd || 0)}</td>
+          <td>${usd(perThousand)}</td>
+        </tr>
+      `;
+    }).join('')
+    : '<tr><td colspan="6">Модели пока не найдены.</td></tr>';
   usageUserRowsEl.innerHTML = (summary.userToolRows || []).length
     ? summary.userToolRows.slice(0, 80).map(row => `
       <tr>

@@ -113,6 +113,7 @@
               </div>
               <div class="button-row">
                 <a id="exportUsageLink" class="button-link" href="/api/export/usage.csv">Usage CSV</a>
+                <a id="exportUsagePdfLink" class="button-link" href="/api/export/usage.pdf">Usage PDF</a>
                 <button id="syncUsageBtn" class="secondary small" type="button">Синхронизировать</button>
               </div>
             </div>
@@ -154,6 +155,14 @@
               <div class="chart-panel wide-panel">
                 <h3>Стоимость по дням</h3>
                 <div id="usageDayChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel">
+                <h3>Стоимость по неделям</h3>
+                <div id="usageWeekChart" class="bar-list"></div>
+              </div>
+              <div class="chart-panel">
+                <h3>Стоимость по месяцам</h3>
+                <div id="usageMonthChart" class="bar-list"></div>
               </div>
               <div class="chart-panel">
                 <h3>Источники usage</h3>
@@ -213,6 +222,23 @@ main: Model: Sonnet 5 | Cost: $1.20 | Session: 12.0% | Weekly: 52.0% | Ctx Used:
               <button type="submit">Импортировать CLI usage</button>
             </form>
             <div id="cliStatusResult" class="hint"></div>
+          </section>
+
+          <section class="card">
+            <h2>Модели</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Модель</th>
+                  <th>Событий</th>
+                  <th>Запросы</th>
+                  <th>Токены</th>
+                  <th>Стоимость</th>
+                  <th>$/1k токенов</th>
+                </tr>
+              </thead>
+              <tbody id="usageModelRows"></tbody>
+            </table>
           </section>
 
           <section class="card">

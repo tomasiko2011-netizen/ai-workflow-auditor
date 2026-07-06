@@ -5,8 +5,8 @@ Updated: 2026-07-06
 ## Live deployment
 
 - Vercel URL: https://ai-workflow-auditor-ashen.vercel.app
-- Latest deployment URL: https://ai-workflow-auditor-9rf5qxkrd-boss-projects-2a53f7d6.vercel.app
-- Latest inspect URL: https://vercel.com/boss-projects-2a53f7d6/ai-workflow-auditor/5RQ3YSED2Gw71yfxVbpW8PSHorSS
+- Latest deployment URL: https://ai-workflow-auditor-5leclbwwy-boss-projects-2a53f7d6.vercel.app
+- Latest inspect URL: https://vercel.com/boss-projects-2a53f7d6/ai-workflow-auditor/2zwBCEsQU8CxY9wKSyp5J1WthK3U
 
 ## Login
 
@@ -67,7 +67,9 @@ The serverless adapter still has an ephemeral `/tmp` fallback for local/dev cont
 - Usage filters by source, provider, user, project, and date range
 - Usage CSV export at `/api/export/usage.csv`
 - Usage drill-down by AI session/project with last-seen, tokens, requests, and cost
-- Usage charts by day, source, project, provider, tool, user, and model
+- Usage charts by day, week, month, source, project, provider, tool, user, and model
+- Usage model comparison table with cost per 1k tokens
+- Usage PDF export at `/api/export/usage.pdf`
 - ROI by AI tool, department, and owner
 - Russian tabbed dashboard: overview, tasks, checks, import, users, audit log
 - Dashboard charts by AI tool, department, quality, and risks
@@ -97,6 +99,7 @@ The serverless adapter still has an ephemeral `/tmp` fallback for local/dev cont
 - 2026-07-06: Live monitor heartbeat verified on production: dashboard receives `activeSessions`, `costRows`, and heartbeat fields.
 - 2026-07-06: `ADMIN_PASSWORD` configured in Vercel Production/Development; old `admin/admin` login verified as rejected, configured password verified as accepted.
 - 2026-07-06: Usage filters, session drill-down, daily/source/project cost charts, and usage CSV export deployed and live-verified.
+- 2026-07-06: Usage PDF export, week/month cost charts, and model comparison table deployed and live-verified.
 
 ## Saved checkpoint - 2026-07-02
 
@@ -166,7 +169,7 @@ Product improvements:
 - Add per-session drill-down page: session name, cwd/project, model, cost, tokens, open/closed status, timeline.
 - PARTIAL 2026-07-06: Added session drill-down table in Usage tab; dedicated page/timeline still pending.
 - Add cost charts by day/week/month and by project folder.
-- PARTIAL 2026-07-06: Added daily and project-folder cost charts; week/month rollups still pending.
+- DONE 2026-07-06: Added daily, weekly, monthly, and project-folder cost charts.
 - Add model comparison: Opus vs Sonnet, cost per useful task, tokens per result.
 - Add filters for usage source:
   - manual CSV
@@ -180,7 +183,7 @@ Product improvements:
   - context above threshold
   - too many active sessions
 - Add export for usage CSV/PDF, not only tasks/report.
-- PARTIAL 2026-07-06: Added usage CSV export; PDF still pending.
+- DONE 2026-07-06: Added usage CSV and PDF exports.
 
 Integration improvements:
 

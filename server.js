@@ -591,6 +591,14 @@ function usageSummary(events = []) {
   }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
   const byUser = group('user');
   const dayKey = event => String(event.periodStart || event.createdAt || '').slice(0, 10) || 'unknown';
+  const monthKey = event => dayKey(event).slice(0, 7) || 'unknown';
+  const weekKey = event => {
+    const date = new Date(`${dayKey(event)}T00:00:00Z`);
+    if (Number.isNaN(date.getTime())) return 'unknown';
+    const monday = new Date(date);
+    monday.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+    return monday.toISOString().slice(0, 10);
+  };
   const sessionKey = event => String(event.project || '').split(' / ')[0].replace(/^окно\s+/, '').trim() || event.project || 'unknown';
   const userToolRows = Object.values(events.reduce((acc, event) => {
     const user = event.user || 'unknown';
@@ -612,6 +620,15 @@ function usageSummary(events = []) {
     acc[label].requests += Number(event.requests) || 0;
     return acc;
   }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => a.label.localeCompare(b.label));
+  const rollup = keyFn => Object.values(events.reduce((acc, event) => {
+    const label = keyFn(event);
+    acc[label] ||= { label, events: 0, costUsd: 0, tokens: 0, requests: 0 };
+    acc[label].events += 1;
+    acc[label].costUsd += Number(event.costUsd) || 0;
+    acc[label].tokens += Number(event.totalTokens) || 0;
+    acc[label].requests += Number(event.requests) || 0;
+    return acc;
+  }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => a.label.localeCompare(b.label));
   const bySession = Object.values(events.reduce((acc, event) => {
     const session = sessionKey(event);
     acc[session] ||= { session, project: event.project || '', source: event.source || '', events: 0, costUsd: 0, tokens: 0, requests: 0, lastSeenAt: '' };
@@ -622,7 +639,7 @@ function usageSummary(events = []) {
     acc[session].lastSeenAt = [acc[session].lastSeenAt, event.periodEnd || event.createdAt || ''].sort().at(-1) || '';
     return acc;
   }, {})).map(row => ({ ...row, costUsd: +row.costUsd.toFixed(4) })).sort((a, b) => b.costUsd - a.costUsd || b.tokens - a.tokens);
-  return { totalEvents: events.length, totalCostUsd: +totalCostUsd.toFixed(4), totalTokens, totalRequests, byProvider: group('provider'), byTool: group('tool'), byModel: group('model'), byProject: group('project'), bySource: group('source'), byDay, byUser, userToolRows, bySession, lastUpdated: events[0]?.createdAt || null };
+  return { totalEvents: events.length, totalCostUsd: +totalCostUsd.toFixed(4), totalTokens, totalRequests, byProvider: group('provider'), byTool: group('tool'), byModel: group('model'), byProject: group('project'), bySource: group('source'), byDay, byWeek: rollup(weekKey), byMonth: rollup(monthKey), byUser, userToolRows, bySession, lastUpdated: events[0]?.createdAt || null };
 }
 
 function filterUsageEvents(events = [], params = {}) {
@@ -965,6 +982,26 @@ function reportPdf(report, insights) {
   return makeSimplePdf(lines);
 }
 
+function usagePdf(events) {
+  const summary = usageSummary(events);
+  const lines = [
+    'Usage report',
+    `Generated: ${nowIso()}`,
+    `Events: ${summary.totalEvents}`,
+    `Cost USD: ${summary.totalCostUsd}`,
+    `Tokens: ${summary.totalTokens}`,
+    `Requests: ${summary.totalRequests}`,
+    '',
+    'Models:'
+  ];
+  for (const row of (summary.byModel || []).slice(0, 8)) lines.push(`${row.label}: $${row.costUsd}, ${row.tokens} tokens, ${row.requests} requests`);
+  lines.push('', 'Sources:');
+  for (const row of (summary.bySource || []).slice(0, 8)) lines.push(`${row.label}: $${row.costUsd}, ${row.events} events`);
+  lines.push('', 'Sessions:');
+  for (const row of (summary.bySession || []).slice(0, 8)) lines.push(`${row.session}: $${row.costUsd}, ${row.tokens} tokens`);
+  return makeSimplePdf(lines);
+}
+
 function listAudit(params = {}) {
   const limit = Math.min(Number(params.limit) || 50, 200);
   return runSql(`SELECT * FROM audit_log ORDER BY datetime(created_at) DESC LIMIT ${limit};`, { json: true })
@@ -1258,6 +1295,12 @@ const server = http.createServer(async (req, res) => {
     const csv = usageCsv(filterUsageEvents(listUsageEvents(1000), queryParams(urlObj)));
     logAudit(user, 'export_usage_csv', 'usage', null);
     return sendText(res, 200, csv, 'text/csv; charset=utf-8', { 'Content-Disposition': 'attachment; filename="ai-workflow-usage.csv"' });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/export/usage.pdf') {
+    const pdf = usagePdf(filterUsageEvents(listUsageEvents(1000), queryParams(urlObj)));
+    logAudit(user, 'export_usage_pdf', 'usage', null);
+    return sendText(res, 200, pdf, 'application/pdf', { 'Content-Disposition': 'attachment; filename="ai-workflow-usage.pdf"' });
   }
 
   const pluginId = parsePluginRoute(pathname);
