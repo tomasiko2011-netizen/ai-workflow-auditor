@@ -7,7 +7,30 @@ const { AVAILABLE_PLUGINS, normalizePluginState, executePlugins } = require('../
 const STORE_PATH = path.join('/tmp', 'ai-workflow-auditor-store.json');
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
 const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
-const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || 'admin').trim();
+// Пароль admin по умолчанию — только локально. На Vercel/в production без ADMIN_PASSWORD вход admin закрыт.
+const IS_PROD = Boolean(process.env.VERCEL) || process.env.NODE_ENV === 'production';
+const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || (IS_PROD ? '' : 'admin')).trim();
+
+// Пароли пользователей храним хэшем scrypt (раньше — открытым текстом в store)
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  return `scrypt$${salt}$${crypto.scryptSync(String(password), salt, 64).toString('hex')}`;
+}
+
+function sameString(a, b) {
+  const x = Buffer.from(String(a)), y = Buffer.from(String(b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+
+function checkPassword(given, user) {
+  given = String(given || '');
+  if (user.password_hash && user.password_hash.startsWith('scrypt$')) {
+    const [, salt, expected] = user.password_hash.split('$');
+    return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), crypto.scryptSync(given, salt, 64));
+  }
+  // старые записи с открытым паролем: сверяем, при входе переводим в хэш
+  return typeof user.password === 'string' && user.password !== '' && sameString(given, user.password);
+}
 const MAX_USAGE_EVENTS = Number(process.env.AUDITOR_MAX_USAGE_EVENTS || 5000) || 5000;
 const USAGE_RETENTION_DAYS = Number(process.env.AUDITOR_USAGE_RETENTION_DAYS || 90) || 90;
 const INGEST_RATE_LIMIT_PER_MIN = Number(process.env.AUDITOR_INGEST_RATE_LIMIT_PER_MIN || 120) || 120;
@@ -41,7 +64,7 @@ function seedStore() {
     ],
     pluginState: { 'marketing-quality': true, 'legal-compliance': true, 'manager-roi': false },
     users: [
-      { username: 'admin', password: ADMIN_PASSWORD, role: 'admin', department: '', created_at: nowIso() }
+      { username: 'admin', password_hash: ADMIN_PASSWORD ? hashPassword(ADMIN_PASSWORD) : '', role: 'admin', department: '', created_at: nowIso() }
     ],
     sessions: {},
     monitorStatus: null,
@@ -700,8 +723,13 @@ module.exports = async function handler(req, res) {
     if (req.method === 'POST' && rawPath === '/login') {
       const body = await readBody(req);
       const found = store.users.find(user => user.username === String(body.username || 'admin'));
-      const expectedPassword = found?.username === 'admin' && process.env.ADMIN_PASSWORD ? ADMIN_PASSWORD : found?.password;
-      if (!found || expectedPassword !== String(body.password || '')) return json(res, 401, { error: 'Invalid username or password' });
+      const given = String(body.password || '');
+      const ok = found?.username === 'admin' && ADMIN_PASSWORD ? sameString(given, ADMIN_PASSWORD) : Boolean(found) && checkPassword(given, found);
+      if (!ok) return json(res, 401, { error: 'Invalid username or password' });
+      if (typeof found.password === 'string') {  // миграция открытого пароля в хэш
+        found.password_hash = hashPassword(found.password);
+        Reflect.deleteProperty(found, 'password');
+      }
       const user = publicUser(found);
       setSession(res, store, user);
       logAudit(store, user, 'login', 'session', user.username);
@@ -875,7 +903,7 @@ module.exports = async function handler(req, res) {
       if (!existing && !body.password) return json(res, 400, { error: 'password is required for new user' });
       const saved = {
         username,
-        password: body.password || existing.password,
+        password_hash: body.password ? hashPassword(body.password) : (existing.password_hash || (existing.password ? hashPassword(existing.password) : '')),
         role: ['admin', 'manager', 'reviewer', 'viewer'].includes(body.role) ? body.role : 'viewer',
         department: String(body.department || ''),
         created_at: existing?.created_at || nowIso()

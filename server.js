@@ -6,6 +6,10 @@ const { spawnSync } = require('child_process');
 const { AVAILABLE_PLUGINS, normalizePluginState, executePlugins } = require('./plugins');
 
 const PORT = process.env.PORT || 3000;
+// Пароль admin по умолчанию — только для локального запуска; в production без ADMIN_PASSWORD не стартуем
+if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_PASSWORD) {
+  throw new Error('ADMIN_PASSWORD не задан: в production пароль admin по умолчанию запрещён');
+}
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, 'public');
